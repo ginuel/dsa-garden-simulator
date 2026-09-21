@@ -2,359 +2,322 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Data Structures Garden Simulation</title>
-
-  <!-- Tailwind CSS CDN -->
+  <title>Garden DSA Engine</title>
   <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Pyodide Python CDN -->
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
 </head>
-<body class="bg-gray-100 p-4 max-w-xl mx-auto text-gray-800 text-sm space-y-6">
+<body class="bg-gray-100 p-4 max-w-lg mx-auto text-gray-800 text-xs space-y-3">
 
-  <header class="text-center">
-    <h1 class="text-xl font-bold text-emerald-900 flex justify-center items-center gap-2">
-      <i data-lucide="sprout"></i> Garden DSA Simulation Engine
+  <header class="text-center space-y-1">
+    <h1 class="text-lg font-bold text-emerald-900 flex justify-center items-center gap-1">
+      <i data-lucide="sprout" class="w-5 h-5"></i> Garden DSA Simulation
     </h1>
-    <p id="status" class="text-xs text-amber-600 font-semibold mt-1">Initializing Pyodide Runtime...</p>
+    <div class="flex justify-between items-center bg-amber-100 border border-amber-300 p-2 rounded">
+      <span id="status" class="text-amber-700 font-semibold">Initializing Pyodide...</span>
+      <span class="font-bold text-amber-900 text-sm flex items-center gap-1">
+        <i data-lucide="coins" class="w-4 h-4 text-amber-600"></i> Gold: <span id="gold-val">0</span>
+      </span>
+    </div>
   </header>
 
-  <!-- ========================================== -->
-  <!-- PANEL 1: INTERACTIVE FEATURE UIS (TOP)     -->
-  <!-- ========================================== -->
-  <main class="space-y-4">
-    
-    <!-- 1. STACK UI -->
-    <section class="bg-white p-4 border border-gray-300 rounded space-y-2">
-      <h2 class="font-bold text-emerald-800 flex items-center gap-2">
-        <i data-lucide="layers" class="w-4 h-4"></i> 1. State Reversal Log (Stack - LIFO)
-      </h2>
-      <button onclick="undoAction()" class="bg-red-700 text-white text-xs px-3 py-1 rounded font-bold">Revert Last Operation</button>
-      <div id="stack-box" class="font-mono text-xs bg-gray-50 p-2 border rounded">Stack is empty.</div>
+  <main class="space-y-3">
+    <!-- 1. STACK -->
+    <section class="bg-white p-3 border rounded space-y-1.5">
+      <div class="flex justify-between items-center">
+        <h2 class="font-bold text-emerald-800 flex items-center gap-1">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i> 1. Stack (LIFO Undo)
+        </h2>
+        <button onclick="undoAction()" class="bg-red-700 text-white px-2 py-0.5 rounded font-bold hover:bg-red-800">Undo</button>
+      </div>
+      <div id="stack-box" class="font-mono bg-gray-50 p-1.5 border rounded min-h-[28px]">Empty</div>
     </section>
 
-    <!-- 2. QUEUE UI -->
-    <section class="bg-white p-4 border border-gray-300 rounded space-y-2">
-      <h2 class="font-bold text-emerald-800 flex items-center gap-2">
-        <i data-lucide="clock" class="w-4 h-4"></i> 2. Execution Pipeline (Queue - FIFO)
+    <!-- 2. QUEUE -->
+    <section class="bg-white p-3 border rounded space-y-1.5">
+      <h2 class="font-bold text-emerald-800 flex items-center gap-1">
+        <i data-lucide="clock" class="w-3.5 h-3.5"></i> 2. Queue (FIFO Execution)
       </h2>
-      <div id="queue-box" class="font-mono text-xs bg-gray-50 p-2 border rounded">Pipeline idle.</div>
+      <div id="queue-box" class="font-mono bg-gray-50 p-1.5 border rounded min-h-[28px]">Idle</div>
     </section>
 
-    <!-- 3. MATRIX UI -->
-    <section class="bg-white p-4 border border-gray-300 rounded space-y-2">
-      <h2 class="font-bold text-emerald-800 flex items-center gap-2">
-        <i data-lucide="grid" class="w-4 h-4"></i> 3. Spatial Land Grid (Matrix - 2D Array)
+    <!-- 3. MATRIX -->
+    <section class="bg-white p-3 border rounded space-y-2">
+      <h2 class="font-bold text-emerald-800 flex items-center gap-1">
+        <i data-lucide="grid" class="w-3.5 h-3.5"></i> 3. Grid Matrix (3x3 Land)
       </h2>
-      <div id="grid-box" class="grid grid-cols-3 gap-2 w-fit"></div>
+      <div id="grid-box" class="grid grid-cols-3 gap-1.5 w-fit mx-auto"></div>
       
-      <div id="controls" class="hidden bg-emerald-50 p-2 border rounded text-xs space-y-1">
-        <span id="target-label" class="font-bold text-emerald-900">Target Location:</span>
-        <div class="flex gap-2">
-          <button onclick="doAction('Soil')" class="bg-amber-800 text-white px-2 py-1 rounded">Cultivate Soil (2s)</button>
-          <button onclick="doAction('Water')" class="bg-blue-600 text-white px-2 py-1 rounded">Irrigate Plot (1s)</button>
-          <button onclick="doAction('Plant')" class="bg-emerald-600 text-white px-2 py-1 rounded">Sow Seeds (3s)</button>
+      <div id="controls" class="hidden bg-emerald-50 p-2 border rounded text-center space-y-1">
+        <div id="target-label" class="font-bold text-emerald-900">Selected Plot: (0,0)</div>
+        <div class="flex justify-center gap-1.5">
+          <button id="btn-soil" onclick="doAction('Soil')" class="bg-amber-800 text-white px-2 py-1 rounded font-semibold hover:bg-amber-900">Soil</button>
+          <button id="btn-plant" onclick="doAction('Plant')" class="bg-emerald-600 text-white px-2 py-1 rounded font-semibold hover:bg-emerald-700">Plant</button>
+          <button id="btn-water" onclick="doAction('Water')" class="bg-blue-600 text-white px-2 py-1 rounded font-semibold hover:bg-blue-700">Water</button>
         </div>
       </div>
     </section>
 
-    <!-- 4. TREE UI -->
-    <section class="bg-white p-4 border border-gray-300 rounded space-y-2">
-      <h2 class="font-bold text-emerald-800 flex items-center gap-2">
-        <i data-lucide="git-branch" class="w-4 h-4"></i> 4. Capability Hierarchy (Tree - DFS)
+    <!-- 4. TREE -->
+    <section class="bg-white p-3 border rounded space-y-1.5">
+      <h2 class="font-bold text-emerald-800 flex items-center gap-1">
+        <i data-lucide="git-branch" class="w-3.5 h-3.5"></i> 4. Skill & Growth Tree
       </h2>
-      <button onclick="unlockSkill()" class="bg-emerald-700 text-white text-xs px-3 py-1 rounded font-bold">Traverse & Unlock Next Node</button>
-      <pre id="tree-box" class="font-mono text-xs bg-gray-50 p-2 border rounded"></pre>
+      <div id="tree-box" class="font-mono bg-gray-50 p-2 border rounded space-y-1 overflow-x-auto text-[11px]"></div>
     </section>
-
   </main>
 
-  <!-- ========================================== -->
-  <!-- PANEL 2: PYTHON CODE WORKBENCH (BOTTOM)   -->
-  <!-- ========================================== -->
-  <section class="bg-white border border-gray-300 rounded overflow-hidden">
-    
-    <div class="bg-gray-800 text-white px-4 py-2 font-bold text-xs flex justify-between items-center">
-      <span class="flex items-center gap-2">
-        <i data-lucide="code" class="w-4 h-4 text-emerald-400"></i> Pyodide Python Code Workbench
+  <!-- PYTHON CODE WORKBENCH -->
+  <section class="bg-white border rounded overflow-hidden">
+    <div class="bg-gray-800 text-white px-3 py-1.5 font-bold flex justify-between items-center">
+      <span class="flex items-center gap-1">
+        <i data-lucide="code" class="w-3.5 h-3.5 text-emerald-400"></i> Python Initializer
       </span>
-      <span class="text-gray-400 font-normal">Editable Scripts</span>
+      <button onclick="runPython()" class="bg-emerald-600 text-white px-2 py-0.5 rounded font-bold hover:bg-emerald-700">Apply Code</button>
     </div>
-
-    <!-- CODE TAB NAVIGATION -->
-    <div class="flex border-b border-gray-300 bg-gray-100 font-semibold text-xs">
-      <button id="tab-btn-stack" onclick="switchTab('stack')" class="flex-1 py-2 text-center border-b-2 border-emerald-600 bg-white text-emerald-900">
-        Stack Script
-      </button>
-      <button id="tab-btn-queue" onclick="switchTab('queue')" class="flex-1 py-2 text-center text-gray-500 hover:bg-gray-50">
-        Queue Script
-      </button>
-      <button id="tab-btn-grid" onclick="switchTab('grid')" class="flex-1 py-2 text-center text-gray-500 hover:bg-gray-50">
-        Matrix Script
-      </button>
-      <button id="tab-btn-tree" onclick="switchTab('tree')" class="flex-1 py-2 text-center text-gray-500 hover:bg-gray-50">
-        Tree Script
-      </button>
-    </div>
-
-    <!-- CODE EDITOR TABS -->
-    <div class="p-4 space-y-2">
-      
-      <!-- 1. STACK CODE TAB -->
-      <div id="tab-stack" class="tab-content space-y-2">
-        <div class="flex justify-between items-center">
-          <span class="font-semibold text-gray-600 text-xs">Edit Stack Logic (Python)</span>
-          <button onclick="runPythonTab('stack')" class="bg-emerald-700 text-white text-xs px-2 py-1 rounded font-bold">Apply Code</button>
-        </div>
-        <textarea id="code-stack" class="w-full h-32 font-mono text-xs bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
-      </div>
-
-      <!-- 2. QUEUE CODE TAB -->
-      <div id="tab-queue" class="tab-content hidden space-y-2">
-        <div class="flex justify-between items-center">
-          <span class="font-semibold text-gray-600 text-xs">Edit Queue Logic (Python)</span>
-          <button onclick="runPythonTab('queue')" class="bg-emerald-700 text-white text-xs px-2 py-1 rounded font-bold">Apply Code</button>
-        </div>
-        <textarea id="code-queue" class="w-full h-32 font-mono text-xs bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
-      </div>
-
-      <!-- 3. MATRIX CODE TAB -->
-      <div id="tab-grid" class="tab-content hidden space-y-2">
-        <div class="flex justify-between items-center">
-          <span class="font-semibold text-gray-600 text-xs">Edit Matrix Logic (Python)</span>
-          <button onclick="runPythonTab('grid')" class="bg-emerald-700 text-white text-xs px-2 py-1 rounded font-bold">Apply Code</button>
-        </div>
-        <textarea id="code-grid" class="w-full h-32 font-mono text-xs bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
-      </div>
-
-      <!-- 4. TREE CODE TAB -->
-      <div id="tab-tree" class="tab-content hidden space-y-2">
-        <div class="flex justify-between items-center">
-          <span class="font-semibold text-gray-600 text-xs">Edit Tree Logic (Python)</span>
-          <button onclick="runPythonTab('tree')" class="bg-emerald-700 text-white text-xs px-2 py-1 rounded font-bold">Apply Code</button>
-        </div>
-        <textarea id="code-tree" class="w-full h-32 font-mono text-xs bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
-      </div>
-
+    <div class="p-2">
+      <textarea id="python-code" class="w-full h-40 font-mono bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
     </div>
   </section>
 
   <script>
-    let py = null;
-    let selectedCell = null;
-    let timerRunning = false;
-    let speeds = { Soil: 2, Water: 1, Plant: 3 };
+    let py = null, selectedCell = null, timerRunning = false, gold = 0;
+    let history_stack = [], execution_queue = [];
+    let plot_matrix = Array(3).fill(null).map(() => 
+      Array(3).fill(null).map(() => ({ status: "Empty", timer: 0, timerId: null, hasPlant: false, isWatered: false }))
+    );
+    let speeds = { Soil: 2.0, Water: 1.0, Plant: 3.0 };
+    let growthTime = 5, treeRoot = null;
 
-    const defaultCodes = {
-      stack: `history_stack = []
+    const initialPythonCode = `class Node:
+    def __init__(self, id_str, name, action=None, speed=None, growth_time=None, cost=10):
+        self.id = id_str
+        self.name = name
+        self.action = action
+        self.speed = speed
+        self.growth_time = growth_time
+        self.cost = cost
+        self.unlocked = False
+        self.children = []
 
-def push_operation(task):
-    history_stack.append(task)
+root = Node("root", "Root Node", cost=0)
 
-def pop_operation():
-    return history_stack.pop() if len(history_stack) > 0 else None`,
+soil = Node("soil", "Learned: Soil", "Soil", 2.0, cost=5)
+water = Node("water", "Learned: Water", "Water", 1.0, cost=10)
+plant = Node("plant", "Learned: Plant", "Plant", 3.0, cost=10)
+growth = Node("growth", "Base Growth", growth_time=5, cost=10)
 
-      queue: `execution_queue = []
+fast_soil = Node("fast_soil", "Fast Soil", "Soil", 1.0, cost=15)
+fast_water = Node("fast_water", "Fast Water", "Water", 0.5, cost=15)
+fast_plant = Node("fast_plant", "Fast Plant", "Plant", 1.5, cost=15)
+fast_growth = Node("fast_growth", "Fast Growth", growth_time=3, cost=20)
 
-def enqueue_task(task):
-    execution_queue.append(task)
+super_soil = Node("super_soil", "Super Soil", "Soil", 0.3, cost=30)
+super_water = Node("super_water", "Super Water", "Water", 0.2, cost=30)
+super_plant = Node("super_plant", "Super Plant", "Plant", 0.5, cost=30)
+super_growth = Node("super_growth", "Super Growth", growth_time=1, cost=40)
 
-def dequeue_task():
-    return execution_queue.pop(0) if len(execution_queue) > 0 else None`,
+root.children = [soil, water, plant, growth]
+soil.children = [fast_soil]
+fast_soil.children = [super_soil]
+water.children = [fast_water]
+fast_water.children = [super_water]
+plant.children = [fast_plant]
+fast_plant.children = [super_plant]
+growth.children = [fast_growth]
+fast_growth.children = [super_growth]
 
-      grid: `plot_matrix = [
-    ["Uncultivated", "Uncultivated", "Uncultivated"],
-    ["Uncultivated", "Uncultivated", "Uncultivated"],
-    ["Uncultivated", "Uncultivated", "Uncultivated"]
-]
+def serialize(node):
+    return {
+        "id": node.id, "name": node.name, "action": node.action,
+        "speed": node.speed, "growth_time": node.growth_time,
+        "cost": node.cost, "unlocked": node.unlocked,
+        "children": [serialize(c) for c in node.children]
+    }
 
-def update_plot(r, c, state):
-    plot_matrix[r][c] = state`,
-
-      tree: `capability_tree = ["Foundational Agronomy", "Enhanced Tilling", "Automated Irrigation"]
-unlocked_nodes = ["Foundational Agronomy"]
-
-def traverse_and_unlock():
-    if len(unlocked_nodes) < len(capability_tree):
-        unlocked_nodes.append(capability_tree[len(unlocked_nodes)])`
-    };
+tree = serialize(root)`;
 
     async function start() {
-      document.getElementById('code-stack').value = defaultCodes.stack;
-      document.getElementById('code-queue').value = defaultCodes.queue;
-      document.getElementById('code-grid').value = defaultCodes.grid;
-      document.getElementById('code-tree').value = defaultCodes.tree;
-
+      document.getElementById('python-code').value = initialPythonCode;
       py = await loadPyodide();
-
-      await py.runPythonAsync(`
-${defaultCodes.stack}
-${defaultCodes.queue}
-${defaultCodes.grid}
-${defaultCodes.tree}
-      `);
-
-      document.getElementById('status').innerText = "Pyodide Engine Active";
-      document.getElementById('status').className = "text-xs text-center text-emerald-600 font-semibold mt-1";
-
+      await runPython();
+      document.getElementById('status').innerText = "Pyodide Active";
+      document.getElementById('status').className = "text-amber-800 font-semibold";
       drawGrid();
-      drawTree();
+      updateGoldUI();
       lucide.createIcons();
     }
 
-    function switchTab(tabKey) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById(`tab-${tabKey}`).classList.remove('hidden');
-
-      const tabs = ['stack', 'queue', 'grid', 'tree'];
-      tabs.forEach(t => {
-        const btn = document.getElementById(`tab-btn-${t}`);
-        if (t === tabKey) {
-          btn.className = "flex-1 py-2 text-center border-b-2 border-emerald-600 bg-white text-emerald-900";
-        } else {
-          btn.className = "flex-1 py-2 text-center text-gray-500 hover:bg-gray-50";
-        }
-      });
+    async function runPython() {
+      try {
+        await py.runPythonAsync(document.getElementById('python-code').value);
+        let rawTree = py.runPython("tree");
+        treeRoot = rawTree.toJs({ dict_converter: Object.fromEntries });
+        syncTreeEffects();
+        drawTree();
+      } catch (err) { alert("Python Error: " + err); }
     }
 
-    async function runPythonTab(tabKey) {
-      const code = document.getElementById(`code-${tabKey}`).value;
-      try {
-        await py.runPythonAsync(code);
-        alert("Python module updated.");
-        drawStack();
-        drawQueue();
-        drawGrid();
-        drawTree();
-      } catch (err) {
-        alert("Python Runtime Error: " + err);
+    function updateGoldUI() { document.getElementById('gold-val').innerText = gold; }
+
+    function undoAction() {
+      if (history_stack.length > 0) {
+        let last = history_stack.pop();
+        execution_queue = execution_queue.filter(i => i !== last);
+        drawStack(); drawQueue();
       }
     }
 
-    function undoAction() {
-      py.runPython(`
-reverted = pop_operation()
-if reverted:
-    execution_queue = [item for item in execution_queue if item != reverted]
-      `);
-      drawStack();
-      drawQueue();
-    }
-
     function drawStack() {
-      let items = py.runPython("history_stack[::-1]");
       let box = document.getElementById('stack-box');
-      if (!items || items.length === 0) { box.innerHTML = "Stack is empty."; return; }
-      box.innerHTML = items.map(i => `<div>• Plot (${i.get('r')},${i.get('c')}): ${i.get('act')}</div>`).join('');
+      if (history_stack.length === 0) { box.innerText = "Empty"; return; }
+      box.innerHTML = [...history_stack].reverse().map(i => `<div>• (${i.r},${i.c}): ${i.act}</div>`).join('');
     }
 
     function doAction(act) {
       if (!selectedCell) return;
-      let r = selectedCell.r;
-      let c = selectedCell.c;
-      let time = speeds[act];
+      let r = selectedCell.r, c = selectedCell.c, plot = plot_matrix[r][c];
 
-      py.runPython(`
-task = {'r': ${r}, 'c': ${c}, 'act': '${act}', 'time': ${time}}
-push_operation(task)
-enqueue_task(task)
-      `);
+      if (!treeRoot || !treeRoot.unlocked) return alert("Unlock Root Node first!");
+      if ((act === 'Water' || act === 'Plant') && plot.status === 'Empty') return alert(`Cannot ${act.toLowerCase()} without Soil!`);
 
-      drawStack();
+      let task = { r, c, act, time: speeds[act] };
+      history_stack.push(task); execution_queue.push(task);
+      drawStack(); drawQueue();
+      if (!timerRunning) runWorker();
+    }
+
+    function runWorker() {
+      if (execution_queue.length === 0) { timerRunning = false; drawQueue(); return; }
+      timerRunning = true;
+      let task = execution_queue[0];
       drawQueue();
+      setTimeout(() => {
+        let done = execution_queue.shift();
+        if (done) applyPlotChange(done.r, done.c, done.act);
+        drawGrid(); drawQueue(); runWorker();
+      }, task.time * 1000);
+    }
 
-      if (!timerRunning) {
-        runQueueWorker();
+    function applyPlotChange(r, c, act) {
+      let plot = plot_matrix[r][c];
+      if (act === 'Soil') {
+        if (plot.timerId) clearInterval(plot.timerId);
+        plot_matrix[r][c] = { status: 'Soil', timer: 0, timerId: null, hasPlant: false, isWatered: false };
+      } else if (act === 'Plant') {
+        plot.status = 'Soil + Plant'; plot.hasPlant = true;
+      } else if (act === 'Water') {
+        plot.isWatered = true;
+        if (plot.hasPlant) {
+          plot.status = 'Growing...';
+          plot.timer = typeof growthTime === 'number' && !isNaN(growthTime) ? growthTime : 5;
+          if (plot.timerId) clearInterval(plot.timerId);
+          plot.timerId = setInterval(() => {
+            plot.timer--;
+            if (plot.timer <= 0) {
+              clearInterval(plot.timerId); plot.timerId = null; plot.status = 'Gold Harvestable!';
+            }
+            drawGrid();
+          }, 1000);
+        } else { plot.status = 'Watered Soil'; }
       }
     }
 
-    function runQueueWorker() {
-      let qLength = py.runPython("len(execution_queue)");
-      if (qLength === 0) {
-        timerRunning = false;
-        drawQueue();
-        return;
-      }
-
-      timerRunning = true;
-      let currentTask = py.runPython("execution_queue[0]");
-      drawQueue();
-
-      setTimeout(() => {
-        py.runPython(`
-task = dequeue_task()
-if task:
-    update_plot(task['r'], task['c'], task['act'])
-        `);
-        drawGrid();
-        drawQueue();
-        runQueueWorker();
-      }, currentTask.get('time') * 1000);
+    function harvestGold(r, c) {
+      gold += 15; updateGoldUI();
+      plot_matrix[r][c] = { status: 'Soil', timer: 0, timerId: null, hasPlant: false, isWatered: false };
+      drawGrid();
     }
 
     function drawQueue() {
-      let items = py.runPython("execution_queue");
       let box = document.getElementById('queue-box');
-      if (!items || items.length === 0) { box.innerHTML = "Pipeline idle."; return; }
-      box.innerHTML = items.map((i, idx) => `<div>${idx === 0 ? '<b>[PROCESSING]</b>' : '•'} Plot (${i.get('r')},${i.get('c')}): ${i.get('act')} (${i.get('time')}s)</div>`).join('');
+      if (execution_queue.length === 0) { box.innerText = "Idle"; return; }
+      box.innerHTML = execution_queue.map((i, idx) => `<div>${idx === 0 ? '►' : '•'} (${i.r},${i.c}): ${i.act} (${i.time}s)</div>`).join('');
     }
 
     function drawGrid() {
-      let g = py.runPython("plot_matrix");
-      let box = document.getElementById('grid-box');
-      box.innerHTML = '';
-
+      let box = document.getElementById('grid-box'); box.innerHTML = '';
       for (let r = 0; r < 3; r++) {
         for (let c = 0; c < 3; c++) {
-          let val = g.get(r).get(c);
-          let isSel = selectedCell && selectedCell.r === r && selectedCell.c === c;
-          
-          let btn = document.createElement('button');
-          btn.className = `w-16 h-16 rounded text-xs font-bold border flex flex-col items-center justify-center ${
+          let plot = plot_matrix[r][c], isSel = selectedCell && selectedCell.r === r && selectedCell.c === c;
+          let isGold = plot.status === 'Gold Harvestable!', btn = document.createElement('button');
+          btn.className = `w-16 h-16 rounded text-[10px] font-bold border flex flex-col items-center justify-center p-0.5 transition ${
             isSel ? 'border-amber-500 border-2' : 'border-gray-300'
           } ${
-            val === 'Soil' ? 'bg-amber-800 text-white' :
-            val === 'Water' ? 'bg-blue-600 text-white' :
-            val === 'Plant' ? 'bg-emerald-600 text-white' : 'bg-amber-50 text-amber-900'
+            isGold ? 'bg-amber-400 text-amber-950 animate-pulse' :
+            plot.status.includes('Soil') ? 'bg-amber-800 text-amber-100' :
+            plot.status.includes('Growing') ? 'bg-emerald-700 text-white' :
+            plot.status === 'Watered Soil' ? 'bg-blue-600 text-white' : 'bg-amber-50 text-amber-900'
           }`;
-          btn.innerHTML = `(${r},${c})<br>${val}`;
-          btn.onclick = () => selectPlot(r, c);
+          let subText = plot.status;
+          if (plot.status === 'Growing...') subText = `🌱 (${plot.timer}s)`;
+          if (isGold) subText = `💰 CLICK!`;
+          btn.innerHTML = `(${r},${c})<br><span class="text-[9px] font-normal">${subText}</span>`;
+          btn.onclick = () => {
+            if (isGold) return harvestGold(r, c);
+            selectedCell = { r, c }; drawGrid();
+            document.getElementById('controls').classList.remove('hidden');
+            document.getElementById('target-label').innerText = `Selected Plot: (${r}, ${c})`;
+          };
           box.appendChild(btn);
         }
       }
     }
 
-    function selectPlot(r, c) {
-      selectedCell = { r, c };
-      drawGrid();
-      document.getElementById('controls').classList.remove('hidden');
-      document.getElementById('target-label').innerText = `Target Coordinate Matrix: (${r}, ${c})`;
+    function syncTreeEffects() {
+      if (!treeRoot) return;
+      let q = [treeRoot];
+      while (q.length > 0) {
+        let curr = q.shift();
+        if (curr.unlocked) {
+          if (curr.action && curr.speed != null && !isNaN(Number(curr.speed))) speeds[curr.action] = Number(curr.speed);
+          if (curr.growth_time != null && !isNaN(Number(curr.growth_time))) growthTime = Number(curr.growth_time);
+        }
+        if (curr.children) q.push(...curr.children);
+      }
+      document.getElementById('btn-soil').innerText = `Soil (${speeds.Soil}s)`;
+      document.getElementById('btn-water').innerText = `Water (${speeds.Water}s)`;
+      document.getElementById('btn-plant').innerText = `Plant (${speeds.Plant}s)`;
     }
 
-    function unlockSkill() {
-      py.runPython("traverse_and_unlock()");
-      let unlocked = py.runPython("unlocked_nodes");
-      if (unlocked.includes("Enhanced Tilling")) speeds.Soil = 1;
-      if (unlocked.includes("Automated Irrigation")) speeds.Water = 0.5;
-
-      drawTree();
+    function clickUnlockNode(nodeId) {
+      if (!treeRoot) return;
+      function findAndUnlock(node, parentUnlocked) {
+        if (node.id === nodeId) {
+          if (node.unlocked) return alert("Already unlocked!");
+          if (!parentUnlocked) return alert("Parent node must be ON first.");
+          if (gold < node.cost) return alert(`Need ${node.cost} Gold.`);
+          gold -= node.cost; node.unlocked = true; updateGoldUI(); return true;
+        }
+        if (node.children) {
+          for (let child of node.children) { if (findAndUnlock(child, node.unlocked)) return true; }
+        }
+        return false;
+      }
+      findAndUnlock(treeRoot, true);
+      syncTreeEffects(); drawTree();
     }
 
     function drawTree() {
-      let all = py.runPython("capability_tree");
-      let unlocked = py.runPython("unlocked_nodes");
-      let text = "";
-
-      for (let i = 0; i < all.length; i++) {
-        let status = unlocked.includes(all[i]) ? "[ACTIVE NODE]" : "[LOCKED NODE]";
-        let indent = "  ".repeat(i);
-        text += `${indent}${status} ${all[i]}\n`;
+      if (!treeRoot) return;
+      let container = document.getElementById('tree-box'); container.innerHTML = '';
+      function render(node, level = 0) {
+        let row = document.createElement('div'); row.style.paddingLeft = `${level * 16}px`; row.className = "my-0.5";
+        let statusText = node.unlocked ? "[ON]" : "[OFF]";
+        let effectText = node.speed ? ` (${node.speed}s act)` : node.growth_time ? ` (${node.growth_time}s growth)` : '';
+        let costText = node.cost > 0 ? ` - ${node.cost}g` : ' - FREE';
+        let btn = document.createElement('button');
+        btn.className = `px-2 py-1 rounded text-left border font-mono text-[11px] transition ${
+          node.unlocked ? 'bg-emerald-100 border-emerald-500 text-emerald-900 font-bold' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-100'
+        }`;
+        btn.innerHTML = `<b>${statusText}</b> ${node.name}${effectText}${costText}`;
+        btn.onclick = () => clickUnlockNode(node.id);
+        row.appendChild(btn); container.appendChild(row);
+        if (node.children) { for (let c of node.children) render(c, level + 1); }
       }
-      document.getElementById('tree-box').innerText = text;
+      render(treeRoot);
     }
+
     start();
   </script>
 </body>
