@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Data Structures Garden Simulation</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Pyodide Python CDN -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+</head>
+<body class="bg-gray-100 p-4 max-w-xl mx-auto text-gray-800 text-sm space-y-6">
+
+  <header class="text-center">
+    <h1 class="text-xl font-bold text-emerald-900 flex justify-center items-center gap-2">
+      <i data-lucide="sprout"></i> Garden DSA Simulation Engine
+    </h1>
+    <p id="status" class="text-xs text-amber-600 font-semibold mt-1">Initializing Pyodide Runtime...</p>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- PANEL 1: INTERACTIVE FEATURE UIS (TOP)     -->
+  <!-- ========================================== -->
+  <main class="space-y-4">
+    
+    <!-- 1. STACK UI -->
+    <section class="bg-white p-4 border border-gray-300 rounded space-y-2">
+      <h2 class="font-bold text-emerald-800 flex items-center gap-2">
+        <i data-lucide="layers" class="w-4 h-4"></i> 1. State Reversal Log (Stack - LIFO)
+      </h2>
+      <button onclick="undoAction()" class="bg-red-700 text-white text-xs px-3 py-1 rounded font-bold">Revert Last Operation</button>
+      <div id="stack-box" class="font-mono text-xs bg-gray-50 p-2 border rounded">Stack is empty.</div>
+    </section>
+
+    <!-- 2. QUEUE UI -->
+    <section class="bg-white p-4 border border-gray-300 rounded space-y-2">
+      <h2 class="font-bold text-emerald-800 flex items-center gap-2">
+        <i data-lucide="clock" class="w-4 h-4"></i> 2. Execution Pipeline (Queue - FIFO)
+      </h2>
+      <div id="queue-box" class="font-mono text-xs bg-gray-50 p-2 border rounded">Pipeline idle.</div>
+    </section>
+
+    <!-- 3. MATRIX UI -->
+    <section class="bg-white p-4 border border-gray-300 rounded space-y-2">
+      <h2 class="font-bold text-emerald-800 flex items-center gap-2">
+        <i data-lucide="grid" class="w-4 h-4"></i> 3. Spatial Land Grid (Matrix - 2D Array)
+      </h2>
+      <div id="grid-box" class="grid grid-cols-3 gap-2 w-fit"></div>
+      
+      <div id="controls" class="hidden bg-emerald-50 p-2 border rounded text-xs space-y-1">
+        <span id="target-label" class="font-bold text-emerald-900">Target Location:</span>
+        <div class="flex gap-2">
+          <button onclick="doAction('Soil')" class="bg-amber-800 text-white px-2 py-1 rounded">Cultivate Soil (2s)</button>
+          <button onclick="doAction('Water')" class="bg-blue-600 text-white px-2 py-1 rounded">Irrigate Plot (1s)</button>
+          <button onclick="doAction('Plant')" class="bg-emerald-600 text-white px-2 py-1 rounded">Sow Seeds (3s)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. TREE UI -->
+    <section class="bg-white p-4 border border-gray-300 rounded space-y-2">
+      <h2 class="font-bold text-emerald-800 flex items-center gap-2">
+        <i data-lucide="git-branch" class="w-4 h-4"></i> 4. Capability Hierarchy (Tree - DFS)
+      </h2>
+      <button onclick="unlockSkill()" class="bg-emerald-700 text-white text-xs px-3 py-1 rounded font-bold">Traverse & Unlock Next Node</button>
+      <pre id="tree-box" class="font-mono text-xs bg-gray-50 p-2 border rounded"></pre>
+    </section>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- PANEL 2: PYTHON CODE WORKBENCH (BOTTOM)   -->
+  <!-- ========================================== -->
+  <section class="bg-white border border-gray-300 rounded overflow-hidden">
+    
+    <div class="bg-gray-800 text-white px-4 py-2 font-bold text-xs flex justify-between items-center">
+      <span class="flex items-center gap-2">
+        <i data-lucide="code" class="w-4 h-4 text-emerald-400"></i> Pyodide Python Code Workbench
+      </span>
+      <span class="text-gray-400 font-normal">Editable Scripts</span>
+    </div>
+
+    <!-- CODE TAB NAVIGATION -->
+    <div class="flex border-b border-gray-300 bg-gray-100 font-semibold text-xs">
+      <button id="tab-btn-stack" onclick="switchTab('stack')" class="flex-1 py-2 text-center border-b-2 border-emerald-600 bg-white text-emerald-900">
+        Stack Script
+      </button>
+      <button id="tab-btn-queue" onclick="switchTab('queue')" class="flex-1 py-2 text-center text-gray-500 hover:bg-gray-50">
+        Queue Script
+      </button>
+      <button id="tab-btn-grid" onclick="switchTab('grid')" class="flex-1 py-2 text-center text-gray-500 hover:bg-gray-50">
+        Matrix Script
+      </button>
+      <button id="tab-btn-tree" onclick="switchTab('tree')" class="flex-1 py-2 text-center text-gray-500 hover:bg-gray-50">
+        Tree Script
+      </button>
+    </div>
+
+    <!-- CODE EDITOR TABS -->
+    <div class="p-4 space-y-2">
+      
+      <!-- 1. STACK CODE TAB -->
+      <div id="tab-stack" class="tab-content space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="font-semibold text-gray-600 text-xs">Edit Stack Logic (Python)</span>
+          <button onclick="runPythonTab('stack')" class="bg-emerald-700 text-white text-xs px-2 py-1 rounded font-bold">Apply Code</button>
+        </div>
+        <textarea id="code-stack" class="w-full h-32 font-mono text-xs bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
+      </div>
+
+      <!-- 2. QUEUE CODE TAB -->
+      <div id="tab-queue" class="tab-content hidden space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="font-semibold text-gray-600 text-xs">Edit Queue Logic (Python)</span>
+          <button onclick="runPythonTab('queue')" class="bg-emerald-700 text-white text-xs px-2 py-1 rounded font-bold">Apply Code</button>
+        </div>
+        <textarea id="code-queue" class="w-full h-32 font-mono text-xs bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
+      </div>
+
+      <!-- 3. MATRIX CODE TAB -->
+      <div id="tab-grid" class="tab-content hidden space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="font-semibold text-gray-600 text-xs">Edit Matrix Logic (Python)</span>
+          <button onclick="runPythonTab('grid')" class="bg-emerald-700 text-white text-xs px-2 py-1 rounded font-bold">Apply Code</button>
+        </div>
+        <textarea id="code-grid" class="w-full h-32 font-mono text-xs bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
+      </div>
+
+      <!-- 4. TREE CODE TAB -->
+      <div id="tab-tree" class="tab-content hidden space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="font-semibold text-gray-600 text-xs">Edit Tree Logic (Python)</span>
+          <button onclick="runPythonTab('tree')" class="bg-emerald-700 text-white text-xs px-2 py-1 rounded font-bold">Apply Code</button>
+        </div>
+        <textarea id="code-tree" class="w-full h-32 font-mono text-xs bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+    let py = null;
+    let selectedCell = null;
+    let timerRunning = false;
+    let speeds = { Soil: 2, Water: 1, Plant: 3 };
+
+    const defaultCodes = {
+      stack: `history_stack = []
+
+def push_operation(task):
+    history_stack.append(task)
+
+def pop_operation():
+    return history_stack.pop() if len(history_stack) > 0 else None`,
+
+      queue: `execution_queue = []
+
+def enqueue_task(task):
+    execution_queue.append(task)
+
+def dequeue_task():
+    return execution_queue.pop(0) if len(execution_queue) > 0 else None`,
+
+      grid: `plot_matrix = [
+    ["Uncultivated", "Uncultivated", "Uncultivated"],
+    ["Uncultivated", "Uncultivated", "Uncultivated"],
+    ["Uncultivated", "Uncultivated", "Uncultivated"]
+]
+
+def update_plot(r, c, state):
+    plot_matrix[r][c] = state`,
+
+      tree: `capability_tree = ["Foundational Agronomy", "Enhanced Tilling", "Automated Irrigation"]
+unlocked_nodes = ["Foundational Agronomy"]
+
+def traverse_and_unlock():
+    if len(unlocked_nodes) < len(capability_tree):
+        unlocked_nodes.append(capability_tree[len(unlocked_nodes)])`
+    };
+
+    async function start() {
+      document.getElementById('code-stack').value = defaultCodes.stack;
+      document.getElementById('code-queue').value = defaultCodes.queue;
+      document.getElementById('code-grid').value = defaultCodes.grid;
+      document.getElementById('code-tree').value = defaultCodes.tree;
+
+      py = await loadPyodide();
+
+      await py.runPythonAsync(`
+${defaultCodes.stack}
+${defaultCodes.queue}
+${defaultCodes.grid}
+${defaultCodes.tree}
+      `);
+
+      document.getElementById('status').innerText = "Pyodide Engine Active";
+      document.getElementById('status').className = "text-xs text-center text-emerald-600 font-semibold mt-1";
+
+      drawGrid();
+      drawTree();
+      lucide.createIcons();
+    }
+
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabKey}`).classList.remove('hidden');
+
+      const tabs = ['stack', 'queue', 'grid', 'tree'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tabKey) {
+          btn.className = "flex-1 py-2 text-center border-b-2 border-emerald-600 bg-white text-emerald-900";
+        } else {
+          btn.className = "flex-1 py-2 text-center text-gray-500 hover:bg-gray-50";
+        }
+      });
+    }
+
+    async function runPythonTab(tabKey) {
+      const code = document.getElementById(`code-${tabKey}`).value;
+      try {
+        await py.runPythonAsync(code);
+        alert("Python module updated.");
+        drawStack();
+        drawQueue();
+        drawGrid();
+        drawTree();
+      } catch (err) {
+        alert("Python Runtime Error: " + err);
+      }
+    }
+
+    function undoAction() {
+      py.runPython(`
+reverted = pop_operation()
+if reverted:
+    execution_queue = [item for item in execution_queue if item != reverted]
+      `);
+      drawStack();
+      drawQueue();
+    }
+
+    function drawStack() {
+      let items = py.runPython("history_stack[::-1]");
+      let box = document.getElementById('stack-box');
+      if (!items || items.length === 0) { box.innerHTML = "Stack is empty."; return; }
+      box.innerHTML = items.map(i => `<div>• Plot (${i.get('r')},${i.get('c')}): ${i.get('act')}</div>`).join('');
+    }
+
+    function doAction(act) {
+      if (!selectedCell) return;
+      let r = selectedCell.r;
+      let c = selectedCell.c;
+      let time = speeds[act];
+
+      py.runPython(`
+task = {'r': ${r}, 'c': ${c}, 'act': '${act}', 'time': ${time}}
+push_operation(task)
+enqueue_task(task)
+      `);
+
+      drawStack();
+      drawQueue();
+
+      if (!timerRunning) {
+        runQueueWorker();
+      }
+    }
+
+    function runQueueWorker() {
+      let qLength = py.runPython("len(execution_queue)");
+      if (qLength === 0) {
+        timerRunning = false;
+        drawQueue();
+        return;
+      }
+
+      timerRunning = true;
+      let currentTask = py.runPython("execution_queue[0]");
+      drawQueue();
+
+      setTimeout(() => {
+        py.runPython(`
+task = dequeue_task()
+if task:
+    update_plot(task['r'], task['c'], task['act'])
+        `);
+        drawGrid();
+        drawQueue();
+        runQueueWorker();
+      }, currentTask.get('time') * 1000);
+    }
+
+    function drawQueue() {
+      let items = py.runPython("execution_queue");
+      let box = document.getElementById('queue-box');
+      if (!items || items.length === 0) { box.innerHTML = "Pipeline idle."; return; }
+      box.innerHTML = items.map((i, idx) => `<div>${idx === 0 ? '<b>[PROCESSING]</b>' : '•'} Plot (${i.get('r')},${i.get('c')}): ${i.get('act')} (${i.get('time')}s)</div>`).join('');
+    }
+
+    function drawGrid() {
+      let g = py.runPython("plot_matrix");
+      let box = document.getElementById('grid-box');
+      box.innerHTML = '';
+
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          let val = g.get(r).get(c);
+          let isSel = selectedCell && selectedCell.r === r && selectedCell.c === c;
+          
+          let btn = document.createElement('button');
+          btn.className = `w-16 h-16 rounded text-xs font-bold border flex flex-col items-center justify-center ${
+            isSel ? 'border-amber-500 border-2' : 'border-gray-300'
+          } ${
+            val === 'Soil' ? 'bg-amber-800 text-white' :
+            val === 'Water' ? 'bg-blue-600 text-white' :
+            val === 'Plant' ? 'bg-emerald-600 text-white' : 'bg-amber-50 text-amber-900'
+          }`;
+          btn.innerHTML = `(${r},${c})<br>${val}`;
+          btn.onclick = () => selectPlot(r, c);
+          box.appendChild(btn);
+        }
+      }
+    }
+
+    function selectPlot(r, c) {
+      selectedCell = { r, c };
+      drawGrid();
+      document.getElementById('controls').classList.remove('hidden');
+      document.getElementById('target-label').innerText = `Target Coordinate Matrix: (${r}, ${c})`;
+    }
+
+    function unlockSkill() {
+      py.runPython("traverse_and_unlock()");
+      let unlocked = py.runPython("unlocked_nodes");
+      if (unlocked.includes("Enhanced Tilling")) speeds.Soil = 1;
+      if (unlocked.includes("Automated Irrigation")) speeds.Water = 0.5;
+
+      drawTree();
+    }
+
+    function drawTree() {
+      let all = py.runPython("capability_tree");
+      let unlocked = py.runPython("unlocked_nodes");
+      let text = "";
+
+      for (let i = 0; i < all.length; i++) {
+        let status = unlocked.includes(all[i]) ? "[ACTIVE NODE]" : "[LOCKED NODE]";
+        let indent = "  ".repeat(i);
+        text += `${indent}${status} ${all[i]}\n`;
+      }
+      document.getElementById('tree-box').innerText = text;
+    }
+    start();
+  </script>
+</body>
+</html>
+
