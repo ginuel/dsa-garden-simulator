@@ -65,6 +65,31 @@
       </h2>
       <div id="tree-box" class="font-mono bg-gray-50 p-2 border rounded space-y-1 overflow-x-auto text-[11px]"></div>
     </section>
+
+    <!-- 5. TREE TRAVERSAL NAVIGATOR -->
+    <section class="bg-white p-3 border rounded space-y-2">
+      <h2 class="font-bold text-emerald-800 flex items-center gap-1">
+        <i data-lucide="compass" class="w-3.5 h-3.5"></i> 5. Tree Traversal Navigator
+      </h2>
+      <div class="flex flex-wrap gap-1 items-center">
+        <span class="text-gray-600 font-semibold mr-1">Mode:</span>
+        <button onclick="setTraversalMode('bfs')" id="btn-bfs" class="px-2 py-0.5 border rounded font-semibold bg-emerald-700 text-white">BFS</button>
+        <button onclick="setTraversalMode('preorder')" id="btn-preorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Preorder</button>
+        <button onclick="setTraversalMode('inorder')" id="btn-inorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Inorder</button>
+        <button onclick="setTraversalMode('postorder')" id="btn-postorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Postorder</button>
+        <button onclick="startTraversal()" class="bg-amber-600 text-white px-3 py-0.5 rounded font-bold hover:bg-amber-700 ml-auto">Traverse</button>
+      </div>
+      <div id="nav-display" class="bg-gray-50 p-2 border rounded font-mono text-[11px] space-y-1 min-h-[50px]">
+        Select a mode and click "Traverse" to begin.
+      </div>
+      <div class="flex justify-between items-center">
+        <div class="space-x-1">
+          <button id="nav-prev" onclick="traversalPrev()" disabled class="bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed">Prev</button>
+          <button id="nav-next" onclick="traversalNext()" disabled class="bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed">Next</button>
+        </div>
+        <button id="nav-unlock" onclick="unlockHighlightedNode()" disabled class="bg-gray-400 text-white px-3 py-0.5 rounded font-bold cursor-not-allowed">Unlock Selected</button>
+      </div>
+    </section>
   </main>
 
   <!-- PYTHON CODE WORKBENCH -->
@@ -73,7 +98,7 @@
       <span class="flex items-center gap-1">
         <i data-lucide="code" class="w-3.5 h-3.5 text-emerald-400"></i> Python Initializer
       </span>
-      <button onclick="runPython()" class="bg-emerald-600 text-white px-2 py-0.5 rounded font-bold hover:bg-emerald-700">Apply Code</button>
+      <button onclick="confirmAndRunPython()" class="bg-emerald-600 text-white px-2 py-0.5 rounded font-bold hover:bg-emerald-700">Apply Code</button>
     </div>
     <div class="p-2">
       <textarea id="python-code" class="w-full h-40 font-mono bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
@@ -88,6 +113,12 @@
     );
     let speeds = { Soil: 2.0, Water: 1.0, Plant: 3.0 };
     let growthTime = 5, treeRoot = null;
+
+    // Traversal state variables
+    let currentTraversalMode = 'bfs';
+    let traversalSequence = [];
+    let traversalIndex = 0;
+    let traversalActive = false;
 
     const initialPythonCode = `class Node:
     def __init__(self, id_str, name, action=None, speed=None, growth_time=None, cost=10):
@@ -155,32 +186,65 @@ tree = serialize(root)`;
         treeRoot = rawTree.toJs({ dict_converter: Object.fromEntries });
         syncTreeEffects();
         drawTree();
+        resetTraversalState();
       } catch (err) { alert("Python Error: " + err); }
+    }
+
+    async function confirmAndRunPython() {
+      let userConfirmed = confirm("Applying new Python code will reset the game state. Continue?");
+      if (!userConfirmed) return;
+      gold = 0; history_stack = []; execution_queue = []; selectedCell = null;
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+          if (plot_matrix[r][c].timerId) clearInterval(plot_matrix[r][c].timerId);
+        }
+      }
+      plot_matrix = Array(3).fill(null).map(() => 
+        Array(3).fill(null).map(() => ({ status: "Empty", timer: 0, timerId: null, hasPlant: false, isWatered: false }))
+      );
+      document.getElementById('controls').classList.add('hidden');
+      await runPython();
+      drawGrid(); drawStack(); drawQueue(); updateGoldUI();
     }
 
     function updateGoldUI() { document.getElementById('gold-val').innerText = gold; }
 
     function undoAction() {
-      if (history_stack.length > 0) {
-        let last = history_stack.pop();
-        execution_queue = execution_queue.filter(i => i !== last);
-        drawStack(); drawQueue();
+      history_stack = history_stack.filter(item => {
+        let p = plot_matrix[item.r][item.c];
+        return p.status !== 'Growing...' && p.status !== 'Gold Harvestable!';
+      });
+      if (history_stack.length === 0) { alert("Nothing valid to undo!"); return; }
+      let lastTask = history_stack.pop();
+      let { r, c, act } = lastTask;
+      let plot = plot_matrix[r][c];
+      if (act === 'Plant' || act === 'Water') {
+        if (act === 'Plant') plot.hasPlant = false;
+        if (act === 'Water') plot.isWatered = false;
+        if (plot.hasPlant) plot.status = 'Soil + Plant';
+        else if (plot.isWatered) plot.status = 'Watered Soil';
+        else plot.status = 'Soil';
+      } else if (act === 'Soil') {
+        if (plot.timerId) clearInterval(plot.timerId);
+        plot_matrix[r][c] = { status: 'Empty', timer: 0, timerId: null, hasPlant: false, isWatered: false };
       }
-    }
-
-    function drawStack() {
-      let box = document.getElementById('stack-box');
-      if (history_stack.length === 0) { box.innerText = "Empty"; return; }
-      box.innerHTML = [...history_stack].reverse().map(i => `<div>• (${i.r},${i.c}): ${i.act}</div>`).join('');
+      execution_queue = execution_queue.filter(i => i !== lastTask);
+      drawStack(); drawQueue(); drawGrid();
     }
 
     function doAction(act) {
       if (!selectedCell) return;
       let r = selectedCell.r, c = selectedCell.c, plot = plot_matrix[r][c];
-
       if (!treeRoot || !treeRoot.unlocked) return alert("Unlock Root Node first!");
-      if ((act === 'Water' || act === 'Plant') && plot.status === 'Empty') return alert(`Cannot ${act.toLowerCase()} without Soil!`);
-
+      if (act === 'Soil' && plot.status !== 'Empty' && plot.status !== 'Gold Harvestable!') return alert("Plot already has soil or crops!");
+      if (act === 'Plant') {
+        if (plot.status === 'Empty') return alert("Cannot plant without soil first!");
+        if (plot.hasPlant) return alert("Plot already has a plant!");
+      }
+      if (act === 'Water') {
+        if (plot.status === 'Empty') return alert("Cannot water empty land!");
+        if (plot.isWatered) return alert("Plot already watered!");
+      }
       let task = { r, c, act, time: speeds[act] };
       history_stack.push(task); execution_queue.push(task);
       drawStack(); drawQueue();
@@ -205,22 +269,27 @@ tree = serialize(root)`;
         if (plot.timerId) clearInterval(plot.timerId);
         plot_matrix[r][c] = { status: 'Soil', timer: 0, timerId: null, hasPlant: false, isWatered: false };
       } else if (act === 'Plant') {
-        plot.status = 'Soil + Plant'; plot.hasPlant = true;
+        plot.hasPlant = true;
+        if (plot.isWatered) startGrowthTimer(plot);
+        else plot.status = 'Soil + Plant';
       } else if (act === 'Water') {
         plot.isWatered = true;
-        if (plot.hasPlant) {
-          plot.status = 'Growing...';
-          plot.timer = typeof growthTime === 'number' && !isNaN(growthTime) ? growthTime : 5;
-          if (plot.timerId) clearInterval(plot.timerId);
-          plot.timerId = setInterval(() => {
-            plot.timer--;
-            if (plot.timer <= 0) {
-              clearInterval(plot.timerId); plot.timerId = null; plot.status = 'Gold Harvestable!';
-            }
-            drawGrid();
-          }, 1000);
-        } else { plot.status = 'Watered Soil'; }
+        if (plot.hasPlant) startGrowthTimer(plot);
+        else plot.status = 'Watered Soil';
       }
+    }
+
+    function startGrowthTimer(plot) {
+      plot.status = 'Growing...';
+      plot.timer = typeof growthTime === 'number' && !isNaN(growthTime) ? growthTime : 5;
+      if (plot.timerId) clearInterval(plot.timerId);
+      plot.timerId = setInterval(() => {
+        plot.timer--;
+        if (plot.timer <= 0) {
+          clearInterval(plot.timerId); plot.timerId = null; plot.status = 'Gold Harvestable!';
+        }
+        drawGrid();
+      }, 1000);
     }
 
     function harvestGold(r, c) {
@@ -280,34 +349,76 @@ tree = serialize(root)`;
       document.getElementById('btn-plant').innerText = `Plant (${speeds.Plant}s)`;
     }
 
+    // --- Cumulative Level-Gate Helper Functions ---
+    function getNodesAtDepth(node, targetDepth, currentDepth = 0, res = []) {
+      if (!node) return res;
+      if (currentDepth === targetDepth) {
+        res.push(node);
+      } else if (currentDepth < targetDepth && node.children) {
+        for (let c of node.children) {
+          getNodesAtDepth(c, targetDepth, currentDepth + 1, res);
+        }
+      }
+      return res;
+    }
+
+    function getNodeDepthAndTarget(root, targetId, currentDepth = 0) {
+      if (!root) return null;
+      if (root.id === targetId) return { node: root, depth: currentDepth };
+      if (root.children) {
+        for (let c of root.children) {
+          let res = getNodeDepthAndTarget(c, targetId, currentDepth + 1);
+          if (res) return res;
+        }
+      }
+      return null;
+    }
+
     function clickUnlockNode(nodeId) {
       if (!treeRoot) return;
-      function findAndUnlock(node, parentUnlocked) {
-        if (node.id === nodeId) {
-          if (node.unlocked) return alert("Already unlocked!");
-          if (!parentUnlocked) return alert("Parent node must be ON first.");
-          if (gold < node.cost) return alert(`Need ${node.cost} Gold.`);
-          gold -= node.cost; node.unlocked = true; updateGoldUI(); return true;
+      
+      let info = getNodeDepthAndTarget(treeRoot, nodeId);
+      if (!info) return;
+
+      let targetNode = info.node;
+      let depth = info.depth;
+
+      if (targetNode.unlocked) return alert("Already unlocked!");
+      if (gold < targetNode.cost) return alert(`Need ${targetNode.cost} Gold.`);
+
+      // Cumulative Rule: To unlock a node at depth D, ALL nodes at depth D-1 must be unlocked!
+      if (depth > 0) {
+        let prevLevelNodes = getNodesAtDepth(treeRoot, depth - 1);
+        let allPrevUnlocked = prevLevelNodes.every(n => n.unlocked);
+        if (!allPrevUnlocked) {
+          return alert(`Level Gate: You must unlock ALL nodes in level ${depth} first!`);
         }
-        if (node.children) {
-          for (let child of node.children) { if (findAndUnlock(child, node.unlocked)) return true; }
-        }
-        return false;
       }
-      findAndUnlock(treeRoot, true);
-      syncTreeEffects(); drawTree();
+
+      gold -= targetNode.cost;
+      targetNode.unlocked = true;
+      updateGoldUI();
+      syncTreeEffects(); 
+      drawTree(); 
+      if (traversalActive) updateNavDisplay();
     }
 
     function drawTree() {
       if (!treeRoot) return;
       let container = document.getElementById('tree-box'); container.innerHTML = '';
+      let highlightedNodeId = (traversalActive && traversalSequence.length > 0) ? traversalSequence[traversalIndex].id : null;
+
       function render(node, level = 0) {
         let row = document.createElement('div'); row.style.paddingLeft = `${level * 16}px`; row.className = "my-0.5";
         let statusText = node.unlocked ? "[ON]" : "[OFF]";
         let effectText = node.speed ? ` (${node.speed}s act)` : node.growth_time ? ` (${node.growth_time}s growth)` : '';
         let costText = node.cost > 0 ? ` - ${node.cost}g` : ' - FREE';
+        
+        let isHighlighted = (node.id === highlightedNodeId);
+
         let btn = document.createElement('button');
         btn.className = `px-2 py-1 rounded text-left border font-mono text-[11px] transition ${
+          isHighlighted ? 'ring-2 ring-amber-500 bg-amber-50 font-bold border-amber-600' :
           node.unlocked ? 'bg-emerald-100 border-emerald-500 text-emerald-900 font-bold' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-100'
         }`;
         btn.innerHTML = `<b>${statusText}</b> ${node.name}${effectText}${costText}`;
@@ -316,6 +427,150 @@ tree = serialize(root)`;
         if (node.children) { for (let c of node.children) render(c, level + 1); }
       }
       render(treeRoot);
+    }
+
+    // --- Traversal Algorithms & Navigator Logic ---
+    function setTraversalMode(mode) {
+      currentTraversalMode = mode;
+      ['bfs', 'preorder', 'inorder', 'postorder'].forEach(m => {
+        let btn = document.getElementById(`btn-${m}`);
+        if (btn) {
+          btn.className = m === mode ? "px-2 py-0.5 border rounded font-semibold bg-emerald-700 text-white" : "px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800";
+        }
+      });
+      resetTraversalState();
+    }
+
+    function resetTraversalState() {
+      traversalActive = false;
+      traversalSequence = [];
+      traversalIndex = 0;
+
+      let prevBtn = document.getElementById('nav-prev');
+      let nextBtn = document.getElementById('nav-next');
+      let unlockBtn = document.getElementById('nav-unlock');
+
+      if (prevBtn) { prevBtn.disabled = true; prevBtn.className = "bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed"; }
+      if (nextBtn) { nextBtn.disabled = true; nextBtn.className = "bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed"; }
+      if (unlockBtn) { unlockBtn.disabled = true; unlockBtn.className = "bg-gray-400 text-white px-3 py-0.5 rounded font-bold cursor-not-allowed"; }
+
+      document.getElementById('nav-display').innerText = `Mode: ${currentTraversalMode.toUpperCase()}. Click "Traverse" to start.`;
+      drawTree();
+    }
+
+    function startTraversal() {
+      traversalActive = true;
+      if (currentTraversalMode === 'bfs') traversalSequence = getBFSSequence(treeRoot);
+      else if (currentTraversalMode === 'preorder') traversalSequence = getPreorderSequence(treeRoot);
+      else if (currentTraversalMode === 'inorder') traversalSequence = getInorderSequence(treeRoot);
+      else if (currentTraversalMode === 'postorder') traversalSequence = getPostorderSequence(treeRoot);
+
+      traversalIndex = 0;
+
+      let prevBtn = document.getElementById('nav-prev');
+      let nextBtn = document.getElementById('nav-next');
+      let unlockBtn = document.getElementById('nav-unlock');
+
+      prevBtn.disabled = false;
+      prevBtn.className = "bg-gray-700 text-white px-2 py-0.5 rounded font-bold hover:bg-gray-800";
+      
+      nextBtn.disabled = false;
+      nextBtn.className = "bg-gray-700 text-white px-2 py-0.5 rounded font-bold hover:bg-gray-900";
+      
+      unlockBtn.disabled = false;
+      unlockBtn.className = "bg-emerald-700 text-white px-3 py-0.5 rounded font-bold hover:bg-emerald-800";
+
+      updateNavDisplay();
+      drawTree();
+    }
+
+    function getBFSSequence(root) {
+      if (!root) return [];
+      let res = [], q = [root];
+      while (q.length > 0) {
+        let curr = q.shift();
+        res.push(curr);
+        if (curr.children) q.push(...curr.children);
+      }
+      return res;
+    }
+
+    function getPreorderSequence(node, res = []) {
+      if (!node) return res;
+      res.push(node);
+      if (node.children) {
+        for (let c of node.children) getPreorderSequence(c, res);
+      }
+      return res;
+    }
+
+    function getPostorderSequence(node, res = []) {
+      if (!node) return res;
+      if (node.children) {
+        for (let c of node.children) getPostorderSequence(c, res);
+      }
+      res.push(node);
+      return res;
+    }
+
+    function getInorderSequence(node, res = []) {
+      if (!node) return res;
+      if (!node.children || node.children.length === 0) {
+        res.push(node);
+        return res;
+      }
+      getInorderSequence(node.children[0], res);
+      res.push(node);
+      for (let i = 1; i < node.children.length; i++) {
+        getInorderSequence(node.children[i], res);
+      }
+      return res;
+    }
+
+    function traversalNext() {
+      if (!traversalActive || traversalSequence.length === 0) return;
+      if (traversalIndex < traversalSequence.length - 1) {
+        traversalIndex++;
+        updateNavDisplay();
+        drawTree();
+      }
+    }
+
+    function traversalPrev() {
+      if (!traversalActive || traversalSequence.length === 0) return;
+      if (traversalIndex > 0) {
+        traversalIndex--;
+        updateNavDisplay();
+        drawTree();
+      }
+    }
+
+    function updateNavDisplay() {
+      let box = document.getElementById('nav-display');
+      if (!traversalActive || traversalSequence.length === 0) {
+        box.innerText = "Click 'Traverse' to begin sequence.";
+        return;
+      }
+      let currNode = traversalSequence[traversalIndex];
+      let statusText = currNode.unlocked ? "[UNLOCKED]" : "[LOCKED]";
+      let effectText = currNode.speed ? ` (${currNode.speed}s act)` : currNode.growth_time ? ` (${currNode.growth_time}s growth)` : '';
+      let costText = currNode.cost > 0 ? ` - Cost: ${currNode.cost}g` : ' - FREE';
+
+      box.innerHTML = `
+        <div class="flex justify-between text-gray-500 font-bold">
+          <span>Mode: ${currentTraversalMode.toUpperCase()}</span>
+          <span>Step ${traversalIndex + 1} of ${traversalSequence.length}</span>
+        </div>
+        <div class="text-emerald-900 font-bold text-xs mt-1">
+          👉 ${currNode.name} <span class="font-normal text-gray-600">${statusText}${effectText}${costText}</span>
+        </div>
+      `;
+    }
+
+    function unlockHighlightedNode() {
+      if (!traversalActive || traversalSequence.length === 0) return;
+      let currNode = traversalSequence[traversalIndex];
+      clickUnlockNode(currNode.id);
     }
 
     start();
