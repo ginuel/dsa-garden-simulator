@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Garden DSA Engine - GMC Sibling Copy Edition</title>
+  <title>Garden DSA Engine - Tabbed Python Workbench</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
@@ -28,7 +28,7 @@
         <h2 class="font-bold text-emerald-800 flex items-center gap-1">
           <i data-lucide="layers" class="w-3.5 h-3.5"></i> 1. Stack (LIFO Undo)
         </h2>
-        <button onclick="undoAction()" class="bg-red-700 text-white px-2 py-0.5 rounded font-bold hover:bg-red-800">Undo</button>
+        <button onclick="window.undoAction()" class="bg-red-700 text-white px-2 py-0.5 rounded font-bold hover:bg-red-800">Undo</button>
       </div>
       <div id="stack-box" class="font-mono bg-gray-50 p-1.5 border rounded min-h-[28px]">Empty</div>
     </section>
@@ -52,14 +52,14 @@
         <div id="target-label" class="font-bold text-emerald-900">Selected Plot: (0,0)</div>
         <div class="text-[10px] text-emerald-700 mb-1" id="active-crop-label">Active Seed: Origin Crop</div>
         <div class="flex justify-center gap-1.5">
-          <button id="btn-soil" onclick="doAction('Soil')" class="bg-amber-800 text-white px-2 py-1 rounded font-semibold hover:bg-amber-900">Soil (2.0s)</button>
-          <button id="btn-plant" onclick="doAction('Plant')" class="bg-emerald-600 text-white px-2 py-1 rounded font-semibold hover:bg-emerald-700">Plant (3.0s)</button>
-          <button id="btn-water" onclick="doAction('Water')" class="bg-blue-600 text-white px-2 py-1 rounded font-semibold hover:bg-blue-700">Water (1.0s)</button>
+          <button id="btn-soil" onclick="window.doAction('Soil')" class="bg-amber-800 text-white px-2 py-1 rounded font-semibold hover:bg-amber-900">Soil (2.0s)</button>
+          <button id="btn-plant" onclick="window.doAction('Plant')" class="bg-emerald-600 text-white px-2 py-1 rounded font-semibold hover:bg-emerald-700">Plant (3.0s)</button>
+          <button id="btn-water" onclick="window.doAction('Water')" class="bg-blue-600 text-white px-2 py-1 rounded font-semibold hover:bg-blue-700">Water (1.0s)</button>
         </div>
       </div>
     </section>
 
-    <!-- 4. TREE (3 Linear Progress Tracks for Skills & Growth) -->
+    <!-- 4. TREE (Skills & Growth) -->
     <section class="bg-white p-3 border rounded space-y-1.5">
       <h2 class="font-bold text-emerald-800 flex items-center gap-1">
         <i data-lucide="git-branch" class="w-3.5 h-3.5"></i> 4. Skill & Growth Tree (3 Linear Tracks)
@@ -74,21 +74,21 @@
       </h2>
       <div class="flex flex-wrap gap-1 items-center">
         <span class="text-gray-600 font-semibold mr-1">Mode:</span>
-        <button onclick="setTraversalMode('bfs')" id="btn-bfs" class="px-2 py-0.5 border rounded font-semibold bg-emerald-700 text-white">BFS</button>
-        <button onclick="setTraversalMode('preorder')" id="btn-preorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Preorder</button>
-        <button onclick="setTraversalMode('inorder')" id="btn-inorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Inorder</button>
-        <button onclick="setTraversalMode('postorder')" id="btn-postorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Postorder</button>
-        <button onclick="startTraversal()" class="bg-amber-600 text-white px-3 py-0.5 rounded font-bold hover:bg-amber-700 ml-auto">Traverse</button>
+        <button onclick="window.setTraversalMode('bfs')" id="btn-bfs" class="px-2 py-0.5 border rounded font-semibold bg-emerald-700 text-white">BFS</button>
+        <button onclick="window.setTraversalMode('preorder')" id="btn-preorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Preorder</button>
+        <button onclick="window.setTraversalMode('inorder')" id="btn-inorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Inorder</button>
+        <button onclick="window.setTraversalMode('postorder')" id="btn-postorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Postorder</button>
+        <button onclick="window.startTraversal()" class="bg-amber-600 text-white px-3 py-0.5 rounded font-bold hover:bg-amber-700 ml-auto">Traverse</button>
       </div>
       <div id="nav-display" class="bg-gray-50 p-2 border rounded font-mono text-[11px] space-y-1 min-h-[50px]">
         Select a mode and click "Traverse" to begin.
       </div>
       <div class="flex justify-between items-center">
         <div class="space-x-1">
-          <button id="nav-prev" onclick="traversalPrev()" disabled class="bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed">Prev</button>
-          <button id="nav-next" onclick="traversalNext()" disabled class="bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed">Next</button>
+          <button id="nav-prev" onclick="window.traversalPrev()" disabled class="bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed">Prev</button>
+          <button id="nav-next" onclick="window.traversalNext()" disabled class="bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed">Next</button>
         </div>
-        <button id="nav-unlock" onclick="unlockHighlightedNode()" disabled class="bg-gray-400 text-white px-3 py-0.5 rounded font-bold cursor-not-allowed">Unlock Selected</button>
+        <button id="nav-unlock" onclick="window.unlockHighlightedNode()" disabled class="bg-gray-400 text-white px-3 py-0.5 rounded font-bold cursor-not-allowed">Unlock Selected</button>
       </div>
     </section>
 
@@ -99,569 +99,55 @@
           <i data-lucide="git-merge" class="w-3.5 h-3.5"></i> 6. Genetically Modified Crops (GMC Tree)
         </h2>
         <div class="space-x-1">
-          <button onclick="promptMutateGMC()" class="bg-purple-700 text-white px-2 py-0.5 rounded font-bold hover:bg-purple-800 text-[10px]">Mutate Child</button>
-          <button onclick="promptCopySiblingGMC()" class="bg-indigo-700 text-white px-2 py-0.5 rounded font-bold hover:bg-indigo-800 text-[10px]">Copy as Sibling</button>
+          <button onclick="window.promptMutateGMC()" class="bg-purple-700 text-white px-2 py-0.5 rounded font-bold hover:bg-purple-800 text-[10px]">Mutate Child</button>
+          <button onclick="window.promptCopySiblingGMC()" class="bg-indigo-700 text-white px-2 py-0.5 rounded font-bold hover:bg-indigo-800 text-[10px]">Copy as Sibling</button>
         </div>
       </div>
       <div id="gmc-box" class="font-mono bg-gray-50 p-2 border rounded space-y-1 overflow-x-auto text-[11px] min-h-[60px]"></div>
     </section>
   </main>
 
-  <!-- PYTHON CODE WORKBENCH -->
+  <!-- TABBED PYTHON CODE WORKBENCH -->
   <section class="bg-white border rounded overflow-hidden">
     <div class="bg-gray-800 text-white px-3 py-1.5 font-bold flex justify-between items-center">
       <span class="flex items-center gap-1">
-        <i data-lucide="code" class="w-3.5 h-3.5 text-emerald-400"></i> Python Initializer
+        <i data-lucide="code" class="w-3.5 h-3.5 text-emerald-400"></i> Python Code Workbench
       </span>
-      <button onclick="confirmAndRunPython()" class="bg-emerald-600 text-white px-2 py-0.5 rounded font-bold hover:bg-emerald-700">Apply Code</button>
+      <button onclick="window.confirmAndRunPython()" class="bg-emerald-600 text-white px-2 py-0.5 rounded font-bold hover:bg-emerald-700">Apply & Run All</button>
     </div>
+    <!-- Tab Headers -->
+    <div class="flex bg-gray-700 text-gray-300 text-[11px] overflow-x-auto border-b border-gray-600" id="tab-headers">
+      <button onclick="switchTab('node')" class="px-3 py-1.5 bg-gray-900 text-emerald-400 font-bold tab-btn" data-target="node">node.py</button>
+      <button onclick="switchTab('stack')" class="px-3 py-1.5 tab-btn" data-target="stack">stack.py</button>
+      <button onclick="switchTab('queue')" class="px-3 py-1.5 tab-btn" data-target="queue">queue.py</button>
+      <button onclick="switchTab('array')" class="px-3 py-1.5 tab-btn" data-target="array">array.py</button>
+      <button onclick="switchTab('tree')" class="px-3 py-1.5 tab-btn" data-target="tree">tree.py</button>
+      <button onclick="switchTab('traversal')" class="px-3 py-1.5 tab-btn" data-target="traversal">traversal.py</button>
+      <button onclick="switchTab('bst')" class="px-3 py-1.5 tab-btn" data-target="bst">bst.py</button>
+    </div>
+    <!-- Tab Textareas -->
     <div class="p-2">
-      <textarea id="python-code" class="w-full h-40 font-mono bg-gray-900 text-emerald-400 p-2 rounded" spellcheck="false"></textarea>
+      <textarea id="py-node" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content" spellcheck="false"></textarea>
+      <textarea id="py-stack" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
+      <textarea id="py-queue" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
+      <textarea id="py-array" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
+      <textarea id="py-tree" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
+      <textarea id="py-traversal" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
+      <textarea id="py-bst" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
     </div>
   </section>
 
   <script>
-    let py = null, selectedCell = null, timerRunning = false, gold = 50;
-    let history_stack = [], execution_queue = [];
-    let plot_matrix = Array(3).fill(null).map(() => 
-      Array(3).fill(null).map(() => ({ status: "Empty", timer: 0, timerId: null, hasPlant: false, isWatered: false, activeCrop: null }))
-    );
-    let speeds = { Soil: 2.0, Water: 1.0, Plant: 3.0 };
-    let growthTime = 5, treeRoot = null, gmcRoot = null;
-    let selectedGMCId = "origin_gmc";
-    let currentSelectedGMC = { name: "Origin Crop", growth_time: 5, yield_val: 15 };
-
-    let currentTraversalMode = 'bfs';
-    let traversalSequence = [];
-    let traversalIndex = 0;
-    let traversalActive = false;
-
-    const initialPythonCode = `import random
-
-class Node:
-    def __init__(self, id_str, name, action=None, speed=None, growth_time=None, cost=10):
-        self.id = id_str
-        self.name = name
-        self.action = action
-        self.speed = speed
-        self.growth_time = growth_time
-        self.cost = cost
-        self.unlocked = False
-        self.children = []
-
-# Root node for skills & growth
-root = Node("root", "Base Skill Hub", cost=0)
-root.unlocked = True
-
-# Track 1: Soil
-s1 = Node("soil_1", "Soil Mastery I", "Soil", 1.5, cost=10)
-s2 = Node("soil_2", "Soil Mastery II", "Soil", 1.0, cost=20)
-s3 = Node("soil_3", "Soil Mastery III", "Soil", 0.5, cost=35)
-root.children.append(s1); s1.children.append(s2); s2.children.append(s3)
-
-# Track 2: Water
-w1 = Node("water_1", "Hydro Mastery I", "Water", 0.8, cost=10)
-w2 = Node("water_2", "Hydro Mastery II", "Water", 0.4, cost=20)
-w3 = Node("water_3", "Hydro Mastery III", "Water", 0.2, cost=35)
-root.children.append(w1); w1.children.append(w2); w2.children.append(w3)
-
-# Track 3: Growth
-g1 = Node("growth_1", "Rapid Growth I", growth_time=4, cost=15)
-g2 = Node("growth_2", "Rapid Growth II", growth_time=3, cost=25)
-g3 = Node("growth_3", "Rapid Growth III", growth_time=1, cost=40)
-root.children.append(g1); g1.children.append(g2); g2.children.append(g3)
-
-def serialize(node):
-    return {
-        "id": node.id, "name": node.name, "action": node.action,
-        "speed": node.speed, "growth_time": node.growth_time,
-        "cost": node.cost, "unlocked": node.unlocked,
-        "children": [serialize(c) for c in node.children]
-    }
-
-tree = serialize(root)
-
-# --- Section 6: Genetically Modified Crops (GMC) Tree with Mutation & Sibling Cloning ---
-class GMCNode:
-    def __init__(self, id_str, name, growth_time=5, yield_val=15, cost=10):
-        self.id = id_str
-        self.name = name
-        self.growth_time = growth_time
-        self.yield_val = yield_val
-        self.cost = cost
-        self.children = []
-
-    def mutate_child(self, new_name):
-        time_delta = random.choice([-2, -1, 0, 1])
-        yield_delta = random.choice([10, 15, 25])
-        cost_delta = random.choice([5, 10, 20])
-
-        new_growth = max(1, self.growth_time + time_delta)
-        new_yield = self.yield_val + yield_delta
-        new_cost = self.cost + cost_delta
-
-        child_id = f"gmc_{random.randint(1000, 9999)}"
-        child_node = GMCNode(child_id, new_name, new_growth, new_yield, new_cost)
-        self.children.append(child_node)
-        return child_node
-
-gmc_root = GMCNode("origin_gmc", "Origin Crop", growth_time=5, yield_val=15, cost=0)
-
-def serialize_gmc(node):
-    if not node: return None
-    return {
-        "id": node.id, "name": node.name, "growth_time": node.growth_time,
-        "yield_val": node.yield_val, "cost": node.cost,
-        "children": [serialize_gmc(c) for c in node.children]
-    }
-
-gmc_data = serialize_gmc(gmc_root)
-`;
-
-    async function start() {
-      document.getElementById('python-code').value = initialPythonCode;
-      py = await loadPyodide();
-      await runPython();
-      document.getElementById('status').innerText = "Pyodide Active";
-      document.getElementById('status').className = "text-amber-800 font-semibold";
-      drawGrid();
-      updateGoldUI();
-      lucide.createIcons();
-    }
-
-    async function runPython() {
-      try {
-        await py.runPythonAsync(document.getElementById('python-code').value);
-        let rawTree = py.runPython("tree");
-        treeRoot = rawTree.toJs({ dict_converter: Object.fromEntries });
-
-        let rawGmc = py.runPython("gmc_data");
-        gmcRoot = rawGmc ? rawGmc.toJs({ dict_converter: Object.fromEntries }) : null;
-
-        syncTreeEffects();
-        drawTree();
-        drawGMCTree();
-        resetTraversalState();
-      } catch (err) { alert("Python Error: " + err); }
-    }
-
-    async function confirmAndRunPython() {
-      let userConfirmed = confirm("Applying new Python code will reset game state. Continue?");
-      if (!userConfirmed) return;
-      gold = 50; history_stack = []; execution_queue = []; selectedCell = null;
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
-          if (plot_matrix[r][c].timerId) clearInterval(plot_matrix[r][c].timerId);
-        }
-      }
-      plot_matrix = Array(3).fill(null).map(() => 
-        Array(3).fill(null).map(() => ({ status: "Empty", timer: 0, timerId: null, hasPlant: false, isWatered: false, activeCrop: null }))
-      );
-      document.getElementById('controls').classList.add('hidden');
-      await runPython();
-      drawGrid(); drawStack(); drawQueue(); updateGoldUI();
-    }
-
-    function updateGoldUI() { document.getElementById('gold-val').innerText = gold; }
-
-    function undoAction() {
-      history_stack = history_stack.filter(item => {
-        let p = plot_matrix[item.r][item.c];
-        return p.status !== 'Growing...' && p.status !== 'Gold Harvestable!';
+    function switchTab(name) {
+      document.querySelectorAll('.py-tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-gray-900', 'text-emerald-400', 'font-bold');
       });
-      if (history_stack.length === 0) { alert("Nothing valid to undo!"); return; }
-      let lastTask = history_stack.pop();
-      let { r, c, act } = lastTask;
-      let plot = plot_matrix[r][c];
-      if (act === 'Plant' || act === 'Water') {
-        if (act === 'Plant') { plot.hasPlant = false; plot.activeCrop = null; }
-        if (act === 'Water') plot.isWatered = false;
-        if (plot.hasPlant) plot.status = 'Soil + Plant';
-        else if (plot.isWatered) plot.status = 'Watered Soil';
-        else plot.status = 'Soil';
-      } else if (act === 'Soil') {
-        if (plot.timerId) clearInterval(plot.timerId);
-        plot_matrix[r][c] = { status: 'Empty', timer: 0, timerId: null, hasPlant: false, isWatered: false, activeCrop: null };
-      }
-      execution_queue = execution_queue.filter(i => i !== lastTask);
-      drawStack(); drawQueue(); drawGrid();
+      document.getElementById(`py-${name}`).classList.remove('hidden');
+      event.currentTarget.classList.add('bg-gray-900', 'text-emerald-400', 'font-bold');
     }
-
-    function doAction(act) {
-      if (!selectedCell) return;
-      let r = selectedCell.r, c = selectedCell.c, plot = plot_matrix[r][c];
-      if (act === 'Soil' && plot.status !== 'Empty' && plot.status !== 'Gold Harvestable!') return alert("Plot already has soil or crops!");
-      if (act === 'Plant') {
-        if (plot.status === 'Empty') return alert("Cannot plant without soil first!");
-        if (plot.hasPlant) return alert("Plot already has a plant!");
-        plot.activeCrop = { ...currentSelectedGMC };
-      }
-      if (act === 'Water') {
-        if (plot.status === 'Empty') return alert("Cannot water empty land!");
-        if (plot.isWatered) return alert("Plot already watered!");
-      }
-      let task = { r, c, act, time: speeds[act] };
-      history_stack.push(task); execution_queue.push(task);
-      drawStack(); drawQueue();
-      if (!timerRunning) runWorker();
-    }
-
-    function runWorker() {
-      if (execution_queue.length === 0) { timerRunning = false; drawQueue(); return; }
-      timerRunning = true;
-      let task = execution_queue[0];
-      drawQueue();
-      setTimeout(() => {
-        let done = execution_queue.shift();
-        if (done) applyPlotChange(done.r, done.c, done.act);
-        drawGrid(); drawQueue(); runWorker();
-      }, task.time * 1000);
-    }
-
-    function applyPlotChange(r, c, act) {
-      let plot = plot_matrix[r][c];
-      if (act === 'Soil') {
-        if (plot.timerId) clearInterval(plot.timerId);
-        plot_matrix[r][c] = { status: 'Soil', timer: 0, timerId: null, hasPlant: false, isWatered: false, activeCrop: null };
-      } else if (act === 'Plant') {
-        plot.hasPlant = true;
-        if (plot.isWatered) startGrowthTimer(plot);
-        else plot.status = 'Soil + Plant';
-      } else if (act === 'Water') {
-        plot.isWatered = true;
-        if (plot.hasPlant) startGrowthTimer(plot);
-        else plot.status = 'Watered Soil';
-      }
-    }
-
-    function startGrowthTimer(plot) {
-      plot.status = 'Growing...';
-      let cropGrowthTime = plot.activeCrop ? plot.activeCrop.growth_time : growthTime;
-      plot.timer = typeof cropGrowthTime === 'number' && !isNaN(cropGrowthTime) ? cropGrowthTime : 5;
-      if (plot.timerId) clearInterval(plot.timerId);
-      plot.timerId = setInterval(() => {
-        plot.timer--;
-        if (plot.timer <= 0) {
-          clearInterval(plot.timerId); plot.timerId = null; plot.status = 'Gold Harvestable!';
-        }
-        drawGrid();
-      }, 1000);
-    }
-
-    function harvestGold(r, c) {
-      let plot = plot_matrix[r][c];
-      let yieldReward = plot.activeCrop ? plot.activeCrop.yield_val : 15;
-      gold += yieldReward; updateGoldUI();
-      plot_matrix[r][c] = { status: 'Soil', timer: 0, timerId: null, hasPlant: false, isWatered: false, activeCrop: null };
-      drawGrid();
-    }
-
-    function drawQueue() {
-      let box = document.getElementById('queue-box');
-      if (execution_queue.length === 0) { box.innerText = "Idle"; return; }
-      box.innerHTML = execution_queue.map((i, idx) => `<div>${idx === 0 ? '▶' : '•'} (${i.r},${i.c}): ${i.act} (${i.time}s)</div>`).join('');
-    }
-
-    function drawStack() {
-      let box = document.getElementById('stack-box');
-      if (history_stack.length === 0) { box.innerText = "Empty"; return; }
-      box.innerHTML = history_stack.map(i => `<div>(${i.r},${i.c}) - ${i.act}</div>`).join('');
-    }
-
-    function drawGrid() {
-      let box = document.getElementById('grid-box'); box.innerHTML = '';
-      for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
-          let plot = plot_matrix[r][c], isSel = selectedCell && selectedCell.r === r && selectedCell.c === c;
-          let isGold = plot.status === 'Gold Harvestable!', btn = document.createElement('button');
-          btn.className = `w-16 h-16 rounded text-[10px] font-bold border flex flex-col items-center justify-center p-0.5 transition ${
-            isSel ? 'border-amber-500 border-2' : 'border-gray-300'
-          } ${
-            isGold ? 'bg-amber-400 text-amber-950 animate-pulse' :
-            plot.status.includes('Soil') ? 'bg-amber-800 text-amber-100' :
-            plot.status.includes('Growing') ? 'bg-emerald-700 text-white' :
-            plot.status === 'Watered Soil' ? 'bg-blue-600 text-white' : 'bg-amber-50 text-amber-900'
-          }`;
-          let subText = plot.status;
-          if (plot.status === 'Growing...') subText = `⏳ (${plot.timer}s)`;
-          if (isGold) subText = `💰 HARVEST!`;
-          btn.innerHTML = `(${r},${c})<br><span class="text-[9px] font-normal">${subText}</span>`;
-          btn.onclick = () => {
-            if (isGold) return harvestGold(r, c);
-            selectedCell = { r, c }; drawGrid();
-            document.getElementById('controls').classList.remove('hidden');
-            document.getElementById('target-label').innerText = `Selected Plot: (${r}, ${c})`;
-            document.getElementById('active-crop-label').innerText = `Active Seed: ${currentSelectedGMC.name} (+${currentSelectedGMC.yield_val}g)`;
-          };
-          box.appendChild(btn);
-        }
-      }
-    }
-
-    function syncTreeEffects() {
-      if (!treeRoot) return;
-      let q = [treeRoot];
-      while (q.length > 0) {
-        let curr = q.shift();
-        if (curr.unlocked) {
-          if (curr.action && curr.speed != null && !isNaN(Number(curr.speed))) speeds[curr.action] = Number(curr.speed);
-          if (curr.growth_time != null && !isNaN(Number(curr.growth_time))) growthTime = Number(curr.growth_time);
-        }
-        if (curr.children) q.push(...curr.children);
-      }
-      document.getElementById('btn-soil').innerText = `Soil (${speeds.Soil}s)`;
-      document.getElementById('btn-water').innerText = `Water (${speeds.Water}s)`;
-      document.getElementById('btn-plant').innerText = `Plant (${speeds.Plant}s)`;
-    }
-
-    function findNodeWithParent(node, id, parent = null) {
-      if (!node) return null;
-      if (node.id === id) return { node, parent };
-      if (node.children) {
-        for (let c of node.children) {
-          let found = findNodeWithParent(c, id, node);
-          if (found) return found;
-        }
-      }
-      return null;
-    }
-
-    function clickUnlockNode(nodeId) {
-      let res = findNodeWithParent(treeRoot, nodeId);
-      if (!res) return;
-      let targetNode = res.node;
-      let parentNode = res.parent;
-
-      if (targetNode.unlocked) return alert("Skill already unlocked!");
-      if (parentNode && !parentNode.unlocked) return alert(`Dependency Error: You must unlock parent skill "${parentNode.name}" first!`);
-      if (gold < targetNode.cost) return alert(`Need ${targetNode.cost} Gold to unlock skill.`);
-
-      gold -= targetNode.cost;
-      targetNode.unlocked = true;
-      updateGoldUI();
-      syncTreeEffects();
-      drawTree();
-      if (traversalActive) updateNavDisplay();
-    }
-
-    function drawTree() {
-      if (!treeRoot) return;
-      let container = document.getElementById('tree-box'); container.innerHTML = '';
-      let highlightedNodeId = (traversalActive && traversalSequence.length > 0) ? traversalSequence[traversalIndex].id : null;
-
-      function render(node, level = 0) {
-        let row = document.createElement('div'); row.style.paddingLeft = `${level * 16}px`; row.className = "my-0.5";
-        let statusText = node.unlocked ? "[ON]" : "[OFF]";
-        let effectText = node.speed ? ` (${node.speed}s act)` : node.growth_time ? ` (${node.growth_time}s growth)` : '';
-        let costText = node.cost > 0 ? ` - ${node.cost}g` : ' - FREE';
-        let isHighlighted = (node.id === highlightedNodeId);
-
-        let btn = document.createElement('button');
-        btn.className = `px-2 py-1 rounded text-left border font-mono text-[11px] transition ${
-          isHighlighted ? 'ring-2 ring-amber-500 bg-amber-50 font-bold border-amber-600' :
-          node.unlocked ? 'bg-emerald-100 border-emerald-500 text-emerald-900 font-bold' : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-100'
-        }`;
-        btn.innerHTML = `<b>${statusText}</b> ${node.name}${effectText}${costText}`;
-        btn.onclick = () => clickUnlockNode(node.id);
-        row.appendChild(btn); container.appendChild(row);
-        if (node.children) { for (let c of node.children) render(c, level + 1); }
-      }
-      render(treeRoot);
-    }
-
-    // --- Section 6: GMC Mutation & Sibling Cloning Logic ---
-    function promptMutateGMC() {
-      let mutantName = prompt("Enter Name for Mutated GMC Child Seed:", "Super Hybrid X");
-      if (!mutantName) return;
-
-      py.globals.set("target_id", selectedGMCId);
-      py.globals.set("mut_name", mutantName);
-      py.runPython(`
-def mutate_node_recursive(node, tid, name):
-    if node.id == tid:
-        return node.mutate_child(name)
-    for c in node.children:
-        res = mutate_node_recursive(c, tid, name)
-        if res: return res
-    return None
-
-mutate_node_recursive(gmc_root, target_id, mut_name)
-gmc_data = serialize_gmc(gmc_root)
-      `);
-
-      let rawGmc = py.runPython("gmc_data");
-      gmcRoot = rawGmc ? rawGmc.toJs({ dict_converter: Object.fromEntries }) : null;
-      drawGMCTree();
-    }
-
-    function promptCopySiblingGMC() {
-      if (selectedGMCId === "origin_gmc") return alert("Cannot duplicate the root Origin Crop!");
-      let siblingName = prompt("Enter Name for Sibling Clone Seed:", "Clone Strain B");
-      if (!siblingName) return;
-
-      py.globals.set("target_id", selectedGMCId);
-      py.globals.set("sib_name", siblingName);
-      py.runPython(`
-def copy_sibling_recursive(node, tid, name):
-    for i, c in enumerate(node.children):
-        if c.id == tid:
-            dup_id = f"gmc_{random.randint(1000, 9999)}"
-            dup_node = GMCNode(dup_id, name, c.growth_time, c.yield_val, c.cost)
-            node.children.insert(i + 1, dup_node)
-            return dup_node
-        res = copy_sibling_recursive(c, tid, name)
-        if res: return res
-    return None
-
-copy_sibling_recursive(gmc_root, target_id, sib_name)
-gmc_data = serialize_gmc(gmc_root)
-      `);
-
-      let rawGmc = py.runPython("gmc_data");
-      gmcRoot = rawGmc ? rawGmc.toJs({ dict_converter: Object.fromEntries }) : null;
-      drawGMCTree();
-    }
-
-    function drawGMCTree() {
-      let container = document.getElementById('gmc-box');
-      if (!gmcRoot) { container.innerText = "Empty GMC Tree"; return; }
-      container.innerHTML = '';
-
-      function renderGMC(node, level = 0) {
-        if (!node) return;
-        let row = document.createElement('div'); row.style.paddingLeft = `${level * 16}px`; row.className = "my-0.5";
-        let isSelected = (selectedGMCId === node.id);
-        let isActive = (currentSelectedGMC.name === node.name);
-
-        let btn = document.createElement('button');
-        btn.className = `px-2 py-0.5 rounded border font-mono text-[11px] text-left transition ${
-          isSelected ? 'ring-2 ring-purple-600 bg-purple-100 font-bold border-purple-700 text-purple-950' :
-          'bg-purple-50 border-purple-300 text-purple-900 hover:bg-purple-100'
-        }`;
-        btn.innerHTML = `🧬 <b>${node.name}</b> (${node.growth_time}s growth, +${node.yield_val}g) ${isActive ? '👑 [ACTIVE]' : ''}`;
-        btn.onclick = () => {
-          selectedGMCId = node.id;
-          currentSelectedGMC = { name: node.name, yield_val: node.yield_val, growth_time: node.growth_time };
-          drawGMCTree();
-          drawGrid();
-        };
-        row.appendChild(btn); container.appendChild(row);
-        if (node.children) { for (let c of node.children) renderGMC(c, level + 1); }
-      }
-      renderGMC(gmcRoot);
-    }
-
-    // --- Traversal Algorithms & Navigator Logic for Section 4 ---
-    function setTraversalMode(mode) {
-      currentTraversalMode = mode;
-      ['bfs', 'preorder', 'inorder', 'postorder'].forEach(m => {
-        let btn = document.getElementById(`btn-${m}`);
-        if (btn) btn.className = m === mode ? "px-2 py-0.5 border rounded font-semibold bg-emerald-700 text-white" : "px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800";
-      });
-      resetTraversalState();
-    }
-
-    function resetTraversalState() {
-      traversalActive = false; traversalSequence = []; traversalIndex = 0;
-      document.getElementById('nav-display').innerText = `Mode: ${currentTraversalMode.toUpperCase()}. Click "Traverse" to start.`;
-      let prevBtn = document.getElementById('nav-prev');
-      let nextBtn = document.getElementById('nav-next');
-      let unlockBtn = document.getElementById('nav-unlock');
-      if(prevBtn) { prevBtn.disabled = true; prevBtn.className = "bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed"; }
-      if(nextBtn) { nextBtn.disabled = true; nextBtn.className = "bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed"; }
-      if(unlockBtn) { unlockBtn.disabled = true; unlockBtn.className = "bg-gray-400 text-white px-3 py-0.5 rounded font-bold cursor-not-allowed"; }
-      drawTree();
-    }
-
-    function startTraversal() {
-      traversalActive = true;
-      if (currentTraversalMode === 'bfs') traversalSequence = getBFSSequence(treeRoot);
-      else if (currentTraversalMode === 'preorder') traversalSequence = getPreorderSequence(treeRoot);
-      else if (currentTraversalMode === 'postorder') traversalSequence = getPostorderSequence(treeRoot);
-      else traversalSequence = getInorderSequence(treeRoot);
-
-      traversalIndex = 0;
-      let prevBtn = document.getElementById('nav-prev');
-      let nextBtn = document.getElementById('nav-next');
-      let unlockBtn = document.getElementById('nav-unlock');
-      if(prevBtn) { prevBtn.disabled = false; prevBtn.className = "bg-gray-700 text-white px-2 py-0.5 rounded font-bold hover:bg-gray-800"; }
-      if(nextBtn) { nextBtn.disabled = false; nextBtn.className = "bg-gray-700 text-white px-2 py-0.5 rounded font-bold hover:bg-gray-900"; }
-      if(unlockBtn) { unlockBtn.disabled = false; unlockBtn.className = "bg-emerald-700 text-white px-3 py-0.5 rounded font-bold hover:bg-emerald-800"; }
-
-      updateNavDisplay();
-      drawTree();
-    }
-
-    function getBFSSequence(root) {
-      if (!root) return [];
-      let res = [], q = [root];
-      while (q.length > 0) {
-        let curr = q.shift(); res.push(curr);
-        if (curr.children) q.push(...curr.children);
-      }
-      return res;
-    }
-
-    function getPreorderSequence(node, res = []) {
-      if (!node) return res;
-      res.push(node);
-      if (node.children) { for (let c of node.children) getPreorderSequence(c, res); }
-      return res;
-    }
-
-    function getPostorderSequence(node, res = []) {
-      if (!node) return res;
-      if (node.children) { for (let c of node.children) getPostorderSequence(c, res); }
-      res.push(node);
-      return res;
-    }
-
-    function getInorderSequence(node, res = []) {
-      if (!node) return res;
-      if (!node.children || node.children.length === 0) { res.push(node); return res; }
-      getInorderSequence(node.children[0], res);
-      res.push(node);
-      for (let i = 1; i < node.children.length; i++) { getInorderSequence(node.children[i], res); }
-      return res;
-    }
-
-    function traversalNext() {
-      if (!traversalActive || traversalSequence.length === 0) return;
-      if (traversalIndex < traversalSequence.length - 1) { traversalIndex++; updateNavDisplay(); drawTree(); }
-    }
-
-    function traversalPrev() {
-      if (!traversalActive || traversalSequence.length === 0) return;
-      if (traversalIndex > 0) { traversalIndex--; updateNavDisplay(); drawTree(); }
-    }
-
-    function updateNavDisplay() {
-      let box = document.getElementById('nav-display');
-      if (!traversalActive || traversalSequence.length === 0) return;
-      let currNode = traversalSequence[traversalIndex];
-      let statusText = currNode.unlocked ? "[UNLOCKED]" : "[LOCKED]";
-
-      box.innerHTML = `
-        <div class="flex justify-between text-gray-500 font-bold">
-          <span>Mode: ${currentTraversalMode.toUpperCase()}</span>
-          <span>Step ${traversalIndex + 1} of ${traversalSequence.length}</span>
-        </div>
-        <div class="text-emerald-900 font-bold text-xs mt-1">
-          🧭 Traversing Skill Track: ${currNode.name} <span class="font-normal text-gray-600">${statusText}</span>
-        </div>
-      `;
-    }
-
-    function unlockHighlightedNode() {
-      if (!traversalActive || traversalSequence.length === 0) return;
-      let currNode = traversalSequence[traversalIndex];
-      clickUnlockNode(currNode.id);
-      updateNavDisplay();
-    }
-
-    start();
   </script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
-
 
