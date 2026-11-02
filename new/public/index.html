@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Garden DSA Simulation Engine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <!-- Terraria-inspired Day/Night & Weather Celestial Sky Header -->
+        <header id="sky-header">
+            <div id="celestial-body"></div>
+            <div id="stars-layer"></div>
+            <div id="central-hud-mount" class="hud-container"></div>
+        </header>
+
+        <!-- Dynamic Concept Modules Viewport -->
+        <main id="game-main-viewport">
+            <div id="concepts-grid-mount" class="concept-grid"></div>
+        </main>
+    </div>
+
+    <!-- Orchestrator Mount (Central script handles zero concept-specific logic) -->
+    <script type="module" src="js/orchestrator.js"></script>
+</body>
+</html>
