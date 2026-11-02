@@ -1,153 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Garden DSA Engine - Tabbed Python Workbench</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Modular Farming</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #1e272e; color: #f5f6fa; margin: 0; padding: 10px; }
+        #game-container { display: none; max-width: 500px; margin: 0 auto; background: #2f3640; padding: 10px; border-radius: 6px; }
+        .concept-section { border: 1px solid #718093; padding: 8px; margin-bottom: 8px; border-radius: 4px; }
+        .debug-ui { display: none; }
+        .debug-exit-btn { background: #e74c3c; color: #fff; border: none; padding: 5px 10px; cursor: pointer; border-radius: 3px; font-weight: bold; margin-bottom: 8px; width: 100%; display: none; }
+    </style>
 </head>
-<body class="bg-gray-100 p-4 max-w-lg mx-auto text-gray-800 text-xs space-y-3">
-
-  <header class="text-center space-y-1">
-    <h1 class="text-lg font-bold text-emerald-900 flex justify-center items-center gap-1">
-      <i data-lucide="sprout" class="w-5 h-5"></i> Garden DSA Simulation Engine
-    </h1>
-    <div class="flex justify-between items-center bg-amber-100 border border-amber-300 p-2 rounded">
-      <span id="status" class="text-amber-700 font-semibold">Initializing Pyodide...</span>
-      <span class="font-bold text-amber-900 text-sm flex items-center gap-1">
-        <i data-lucide="coins" class="w-4 h-4 text-amber-600"></i> Gold: <span id="gold-val">50</span>
-      </span>
+<body>
+    <div id="python-root"></div>
+    <div id="game-container">
+        <button id="global-toggle-debug-btn" style="background:#3498db; color:#fff; border:none; padding:5px 10px; cursor:pointer; border-radius:3px; font-weight:bold; margin-bottom:8px; width:100%;">Toggle Debug Mode</button>
+        <button id="global-exit-debug-btn" class="debug-exit-btn">Exit Debug Mode</button>
+        <div id="variables-root" class="concept-section"></div>
+        <div id="queue-root" class="concept-section"></div>
+        <div id="grid-root" class="concept-section"></div>
+        <div id="stack-root" class="concept-section"></div>
     </div>
-  </header>
-
-  <main class="space-y-3">
-    <!-- 1. STACK -->
-    <section class="bg-white p-3 border rounded space-y-1.5">
-      <div class="flex justify-between items-center">
-        <h2 class="font-bold text-emerald-800 flex items-center gap-1">
-          <i data-lucide="layers" class="w-3.5 h-3.5"></i> 1. Stack (LIFO Undo)
-        </h2>
-        <button onclick="window.undoAction()" class="bg-red-700 text-white px-2 py-0.5 rounded font-bold hover:bg-red-800">Undo</button>
-      </div>
-      <div id="stack-box" class="font-mono bg-gray-50 p-1.5 border rounded min-h-[28px]">Empty</div>
-    </section>
-
-    <!-- 2. QUEUE -->
-    <section class="bg-white p-3 border rounded space-y-1.5">
-      <h2 class="font-bold text-emerald-800 flex items-center gap-1">
-        <i data-lucide="clock" class="w-3.5 h-3.5"></i> 2. Queue (FIFO Execution)
-      </h2>
-      <div id="queue-box" class="font-mono bg-gray-50 p-1.5 border rounded min-h-[28px]">Idle</div>
-    </section>
-
-    <!-- 3. MATRIX -->
-    <section class="bg-white p-3 border rounded space-y-2">
-      <h2 class="font-bold text-emerald-800 flex items-center gap-1">
-        <i data-lucide="grid" class="w-3.5 h-3.5"></i> 3. Grid Matrix (3x3 Land)
-      </h2>
-      <div id="grid-box" class="grid grid-cols-3 gap-1.5 w-fit mx-auto"></div>
-      
-      <div id="controls" class="hidden bg-emerald-50 p-2 border rounded text-center space-y-1">
-        <div id="target-label" class="font-bold text-emerald-900">Selected Plot: (0,0)</div>
-        <div class="text-[10px] text-emerald-700 mb-1" id="active-crop-label">Active Seed: Origin Crop</div>
-        <div class="flex justify-center gap-1.5">
-          <button id="btn-soil" onclick="window.doAction('Soil')" class="bg-amber-800 text-white px-2 py-1 rounded font-semibold hover:bg-amber-900">Soil (2.0s)</button>
-          <button id="btn-plant" onclick="window.doAction('Plant')" class="bg-emerald-600 text-white px-2 py-1 rounded font-semibold hover:bg-emerald-700">Plant (3.0s)</button>
-          <button id="btn-water" onclick="window.doAction('Water')" class="bg-blue-600 text-white px-2 py-1 rounded font-semibold hover:bg-blue-700">Water (1.0s)</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4. TREE (Skills & Growth) -->
-    <section class="bg-white p-3 border rounded space-y-1.5">
-      <h2 class="font-bold text-emerald-800 flex items-center gap-1">
-        <i data-lucide="git-branch" class="w-3.5 h-3.5"></i> 4. Skill & Growth Tree (3 Linear Tracks)
-      </h2>
-      <div id="tree-box" class="font-mono bg-gray-50 p-2 border rounded space-y-1 overflow-x-auto text-[11px]"></div>
-    </section>
-
-    <!-- 5. TREE TRAVERSAL NAVIGATOR -->
-    <section class="bg-white p-3 border rounded space-y-2">
-      <h2 class="font-bold text-emerald-800 flex items-center gap-1">
-        <i data-lucide="compass" class="w-3.5 h-3.5"></i> 5. Tree Traversal Navigator
-      </h2>
-      <div class="flex flex-wrap gap-1 items-center">
-        <span class="text-gray-600 font-semibold mr-1">Mode:</span>
-        <button onclick="window.setTraversalMode('bfs')" id="btn-bfs" class="px-2 py-0.5 border rounded font-semibold bg-emerald-700 text-white">BFS</button>
-        <button onclick="window.setTraversalMode('preorder')" id="btn-preorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Preorder</button>
-        <button onclick="window.setTraversalMode('inorder')" id="btn-inorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Inorder</button>
-        <button onclick="window.setTraversalMode('postorder')" id="btn-postorder" class="px-2 py-0.5 border rounded font-semibold bg-gray-100 text-gray-800">Postorder</button>
-        <button onclick="window.startTraversal()" class="bg-amber-600 text-white px-3 py-0.5 rounded font-bold hover:bg-amber-700 ml-auto">Traverse</button>
-      </div>
-      <div id="nav-display" class="bg-gray-50 p-2 border rounded font-mono text-[11px] space-y-1 min-h-[50px]">
-        Select a mode and click "Traverse" to begin.
-      </div>
-      <div class="flex justify-between items-center">
-        <div class="space-x-1">
-          <button id="nav-prev" onclick="window.traversalPrev()" disabled class="bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed">Prev</button>
-          <button id="nav-next" onclick="window.traversalNext()" disabled class="bg-gray-400 text-white px-2 py-0.5 rounded font-bold cursor-not-allowed">Next</button>
-        </div>
-        <button id="nav-unlock" onclick="window.unlockHighlightedNode()" disabled class="bg-gray-400 text-white px-3 py-0.5 rounded font-bold cursor-not-allowed">Unlock Selected</button>
-      </div>
-    </section>
-
-    <!-- 6. GENETICALLY MODIFIED CROPS (GMC) TREE & SIBLING CLONING -->
-    <section class="bg-white p-3 border rounded space-y-2">
-      <div class="flex justify-between items-center gap-1 flex-wrap">
-        <h2 class="font-bold text-emerald-800 flex items-center gap-1">
-          <i data-lucide="git-merge" class="w-3.5 h-3.5"></i> 6. Genetically Modified Crops (GMC Tree)
-        </h2>
-        <div class="space-x-1">
-          <button onclick="window.promptMutateGMC()" class="bg-purple-700 text-white px-2 py-0.5 rounded font-bold hover:bg-purple-800 text-[10px]">Mutate Child</button>
-          <button onclick="window.promptCopySiblingGMC()" class="bg-indigo-700 text-white px-2 py-0.5 rounded font-bold hover:bg-indigo-800 text-[10px]">Copy as Sibling</button>
-        </div>
-      </div>
-      <div id="gmc-box" class="font-mono bg-gray-50 p-2 border rounded space-y-1 overflow-x-auto text-[11px] min-h-[60px]"></div>
-    </section>
-  </main>
-
-  <!-- TABBED PYTHON CODE WORKBENCH -->
-  <section class="bg-white border rounded overflow-hidden">
-    <div class="bg-gray-800 text-white px-3 py-1.5 font-bold flex justify-between items-center">
-      <span class="flex items-center gap-1">
-        <i data-lucide="code" class="w-3.5 h-3.5 text-emerald-400"></i> Python Code Workbench
-      </span>
-      <button onclick="window.confirmAndRunPython()" class="bg-emerald-600 text-white px-2 py-0.5 rounded font-bold hover:bg-emerald-700">Apply & Run All</button>
-    </div>
-    <!-- Tab Headers -->
-    <div class="flex bg-gray-700 text-gray-300 text-[11px] overflow-x-auto border-b border-gray-600" id="tab-headers">
-      <button onclick="switchTab('node')" class="px-3 py-1.5 bg-gray-900 text-emerald-400 font-bold tab-btn" data-target="node">node.py</button>
-      <button onclick="switchTab('stack')" class="px-3 py-1.5 tab-btn" data-target="stack">stack.py</button>
-      <button onclick="switchTab('queue')" class="px-3 py-1.5 tab-btn" data-target="queue">queue.py</button>
-      <button onclick="switchTab('array')" class="px-3 py-1.5 tab-btn" data-target="array">array.py</button>
-      <button onclick="switchTab('tree')" class="px-3 py-1.5 tab-btn" data-target="tree">tree.py</button>
-      <button onclick="switchTab('traversal')" class="px-3 py-1.5 tab-btn" data-target="traversal">traversal.py</button>
-      <button onclick="switchTab('bst')" class="px-3 py-1.5 tab-btn" data-target="bst">bst.py</button>
-    </div>
-    <!-- Tab Textareas -->
-    <div class="p-2">
-      <textarea id="py-node" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content" spellcheck="false"></textarea>
-      <textarea id="py-stack" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
-      <textarea id="py-queue" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
-      <textarea id="py-array" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
-      <textarea id="py-tree" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
-      <textarea id="py-traversal" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
-      <textarea id="py-bst" class="w-full h-36 font-mono bg-gray-900 text-emerald-400 p-2 rounded py-tab-content hidden" spellcheck="false"></textarea>
-    </div>
-  </section>
-
-  <script>
-    function switchTab(name) {
-      document.querySelectorAll('.py-tab-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('bg-gray-900', 'text-emerald-400', 'font-bold');
-      });
-      document.getElementById(`py-${name}`).classList.remove('hidden');
-      event.currentTarget.classList.add('bg-gray-900', 'text-emerald-400', 'font-bold');
-    }
-  </script>
-  <script type="module" src="script.js"></script>
+    <script src="orchestrator.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
-
