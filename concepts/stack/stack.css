@@ -1,2 +1,0 @@
-.s-list { display: flex; flex-direction: column-reverse; gap: 3px; max-height: 100px; overflow-y: auto; margin-top: 5px; }
-.s-item { background: #e67e22; padding: 4px; display: flex; justify-content: space-between; font-size: 11px; border-radius: 3px; }

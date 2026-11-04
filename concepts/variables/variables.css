@@ -1,4 +1,0 @@
-.celestial { position: relative; width: 100%; height: 30px; background: #1e272e; border-radius: 15px; margin-top: 5px; overflow: hidden; }
-.body { position: absolute; top: 4px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-#sun { background: #fbc531; }
-#moon { background: #f5f6fa; }

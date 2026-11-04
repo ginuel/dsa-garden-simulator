@@ -1,4 +1,0 @@
-#python-root { max-width: 400px; margin: 40px auto; font-family: monospace; }
-.status-banner { padding: 10px; text-align: center; background: #353b48; border: 2px solid #00a8ff; border-radius: 4px; }
-.status-banner.error { border-color: #e84118; background: #c23616; }
-.status-banner.success { border-color: #4cd137; background: #44bd32; }
